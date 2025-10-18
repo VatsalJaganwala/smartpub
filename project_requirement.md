@@ -1,5 +1,7 @@
 # 📦 SmartPub — Flutter Dependency Analyzer
 
+> **The smart way to manage Flutter dependencies.**
+
 ### Project Requirements Document
 
 ---
@@ -289,7 +291,7 @@ smartpub --analyse --no-color
 
 === Analysis Results ===
 Used Dependencies: yaml, ansicolor, path
-Move to dev_dependencies: args  
+Move to dev_dependencies: args
 Unused Dependencies: glob, http, cupertino_icons
 
 ```
@@ -333,7 +335,7 @@ dependencies:
 
   # miscellaneous
   some_unknown_package: ^1.0.0
-````
+```
 
 ---
 
@@ -357,15 +359,15 @@ dependencies:
   ```
   GET https://pub.dev/api/packages/<package>/score
   ```
+
 - Use metadata (like “network”, “testing”, etc.) to auto-suggest group.
 
 ---
 
 ## 🧩 Optional Future Enhancements
 
-
 | Feature                  | Description                                                   |
-| -------------------------- | --------------------------------------------------------------- |
+| ------------------------ | ------------------------------------------------------------- |
 | **Export Reports**       | Generate JSON or Markdown summary of analysis.                |
 | **IDE Integration**      | VS Code / IntelliJ plugin to show unused dependencies inline. |
 | **Pub.dev API Learning** | Dynamically update internal package-group mappings.           |
@@ -400,15 +402,15 @@ smartpub/
   - `yaml` → for parsing and writing YAML files
   - `ansicolor` → for CLI color output
   - `http` (optional) → for fetching package metadata
+
 - **Testing:** `test` package
 
 ---
 
 ## ✅ Deliverables by Phase
 
-
 | Phase       | Status | Deliverables                                   |
-| ------------- | -------- | ------------------------------------------------ |
+| ----------- | ------ | ---------------------------------------------- |
 | **Phase 1** | ✅     | Core analyzer, analysis mode, CLI output       |
 | **Phase 2** | 🚧     | Auto-apply, interactive mode, duplicates       |
 | **Phase 3** | ⏳     | Functional grouping, optional network metadata |
@@ -424,11 +426,10 @@ smartpub/
 
 ## ⚙️ Command Reference
 
-
 | Command                   | Status | Description                             |
-| --------------------------- | -------- | ----------------------------------------- |
+| ------------------------- | ------ | --------------------------------------- |
 | `smartpub` or `--analyse` | ✅     | Analyze without modifying files         |
-| `--interactive` | ✅     | Review and apply changes interactively   |
+| `--interactive`           | ✅     | Review and apply changes interactively  |
 | `--apply`                 | ✅     | Automatically apply fixes               |
 | `--organize`              | ⏳     | Group dependencies by functionality     |
 | `--no-color`              | ✅     | Disable colored output for CI pipelines |

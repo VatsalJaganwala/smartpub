@@ -2,6 +2,7 @@
 ///
 /// Contains all constants, configuration values, and settings used throughout
 /// the SmartPub application.
+library;
 
 /// Application information and metadata
 class AppConfig {
@@ -13,6 +14,9 @@ class AppConfig {
 
   /// Application description
   static const String description = 'Flutter Dependency Analyzer';
+  
+  /// Application tagline
+  static const String tagline = 'The smart way to manage Flutter dependencies.';
 
   /// Full application title
   static const String fullTitle = '$appName - $description';
@@ -34,7 +38,7 @@ class FileConfig {
   static const String backupFile = '$pubspecFile$backupExtension';
 
   /// Directories to scan for Dart files
-  static const List<String> scanDirectories = [
+  static const List<String> scanDirectories = <String>[
     'lib/',
     'test/',
     'bin/',
@@ -82,7 +86,7 @@ class AnalysisConfig {
   static const String flutterSdk = 'flutter';
 
   /// Common test-only packages that should be in dev_dependencies
-  static const List<String> testOnlyPackages = [
+  static const List<String> testOnlyPackages = <String>[
     'test',
     'flutter_test',
     'mockito',
@@ -98,7 +102,7 @@ class AnalysisConfig {
 class PackageCategories {
   /// Widget-related packages
   static const String widgets = 'widgets';
-  static const List<String> widgetPackages = [
+  static const List<String> widgetPackages = <String>[
     'cached_network_image',
     'flutter_svg',
     'lottie',
@@ -111,7 +115,7 @@ class PackageCategories {
 
   /// API and networking packages
   static const String api = 'api';
-  static const List<String> apiPackages = [
+  static const List<String> apiPackages = <String>[
     'http',
     'dio',
     'retrofit',
@@ -122,7 +126,7 @@ class PackageCategories {
 
   /// State management packages
   static const String stateManagement = 'state management';
-  static const List<String> statePackages = [
+  static const List<String> statePackages = <String>[
     'flutter_bloc',
     'bloc',
     'provider',
@@ -137,7 +141,7 @@ class PackageCategories {
 
   /// Database and storage packages
   static const String database = 'database';
-  static const List<String> databasePackages = [
+  static const List<String> databasePackages = <String>[
     'sqflite',
     'hive',
     'hive_flutter',
@@ -150,7 +154,7 @@ class PackageCategories {
 
   /// Testing packages
   static const String testing = 'testing';
-  static const List<String> testingPackages = [
+  static const List<String> testingPackages = <String>[
     'test',
     'flutter_test',
     'mockito',
@@ -161,7 +165,7 @@ class PackageCategories {
 
   /// Utility packages
   static const String utilities = 'utilities';
-  static const List<String> utilityPackages = [
+  static const List<String> utilityPackages = <String>[
     'intl',
     'uuid',
     'crypto',
@@ -175,7 +179,7 @@ class PackageCategories {
 
   /// Development tools
   static const String devTools = 'dev tools';
-  static const List<String> devToolPackages = [
+  static const List<String> devToolPackages = <String>[
     'build_runner',
     'json_serializable',
     'json_annotation',
@@ -189,7 +193,7 @@ class PackageCategories {
   static const String miscellaneous = 'miscellaneous';
 
   /// All categories in order
-  static const List<String> allCategories = [
+  static const List<String> allCategories = <String>[
     widgets,
     api,
     stateManagement,
@@ -225,6 +229,7 @@ class CommandConfig {
   static const String organizeFlag = 'organize';
   static const String ciFlag = 'ci';
   static const String restoreFlag = 'restore';
+  static const String updateFlag = 'update';
 
   /// Command abbreviations
   static const String helpAbbr = 'h';
@@ -234,6 +239,7 @@ class CommandConfig {
   static const String interactiveAbbr = 'i';
   static const String organizeAbbr = 'o';
   static const String restoreAbbr = 'r';
+  static const String updateAbbr = 'u';
 }
 
 /// Exit codes for different scenarios

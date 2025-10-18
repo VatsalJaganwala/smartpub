@@ -2,9 +2,21 @@
 ///
 /// Contains information about a single dependency including its usage status,
 /// location, and recommendations for optimization.
+library;
 
 /// Information about a single dependency
 class DependencyInfo {
+
+  DependencyInfo({
+    required this.name,
+    required this.version,
+    required this.section,
+    required this.status,
+    required this.usedInLib,
+    required this.usedInTest,
+    required this.usedInBin,
+    required this.usedInTool,
+  });
   /// Package name
   final String name;
 
@@ -28,17 +40,6 @@ class DependencyInfo {
 
   /// Whether it's used in tool/ directory
   final bool usedInTool;
-
-  DependencyInfo({
-    required this.name,
-    required this.version,
-    required this.section,
-    required this.status,
-    required this.usedInLib,
-    required this.usedInTest,
-    required this.usedInBin,
-    required this.usedInTool,
-  });
 
   /// Get usage description
   String get usageDescription {
@@ -69,11 +70,9 @@ class DependencyInfo {
   }
 
   /// Whether this dependency needs action
-  bool get needsAction {
-    return status == DependencyStatus.unused ||
+  bool get needsAction => status == DependencyStatus.unused ||
         (status == DependencyStatus.testOnly &&
             section == DependencySection.dependencies);
-  }
 }
 
 /// Dependency status enumeration

@@ -1,9 +1,11 @@
 # 📦 SmartPub - Flutter Dependency Analyzer
 
+> **The smart way to manage Flutter dependencies.**
+
 [![pub package](https://img.shields.io/pub/v/smartpub.svg)](https://pub.dev/packages/smartpub)
 [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-A Dart/Flutter developer tool that analyzes and cleans dependencies in your `pubspec.yaml` file. SmartPub identifies unused, misplaced, and duplicate dependencies to keep your Flutter projects clean and efficient.
+A cross-platform Dart/Flutter developer tool that analyzes and cleans dependencies in your `pubspec.yaml` file. SmartPub runs on Windows, macOS, and Linux, identifying unused, misplaced, and duplicate dependencies to keep your Flutter projects clean and efficient.
 
 ## ✨ Features
 
@@ -12,6 +14,17 @@ A Dart/Flutter developer tool that analyzes and cleans dependencies in your `pub
 - 🤝 **Interactive Mode** - Prompts for confirmation before making changes
 - 🛡️ **Safety First** - Creates backups before modifications with easy restore
 - 📊 **Duplicate Detection** - Finds and resolves duplicate dependencies with version conflicts
+
+## 🌐 Platform Support
+
+SmartPub works with Flutter projects targeting any platform:
+
+- ✅ **Android**
+- ✅ **iOS**
+- ✅ **Web**
+- ✅ **macOS**
+- ✅ **Windows**
+- ✅ **Linux**
 
 ## 🚀 Installation
 
@@ -69,6 +82,13 @@ smartpub --interactive
 smartpub --restore
 ```
 
+### Update SmartPub
+
+```bash
+# Update to the latest version
+smartpub --update
+```
+
 ### CI-Friendly Mode
 
 ```bash
@@ -78,28 +98,34 @@ smartpub --analyse --no-color
 
 ## 📋 Command Reference
 
-| Command | Description |
-|---------|-------------|
+
+| Command                   | Description                                 |
+| --------------------------- | --------------------------------------------- |
 | `smartpub` or `--analyse` | Analyze dependencies without making changes |
-| `--interactive` | Review and apply changes interactively |
-| `--apply` | Automatically apply fixes |
-| `--restore` | Restore pubspec.yaml from backup |
-| `--no-color` | Disable colored output |
-| `--help` | Show help information |
-| `--version` | Show version information |
+| `--interactive`           | Review and apply changes interactively      |
+| `--apply`                 | Automatically apply fixes                   |
+| `--restore`               | Restore pubspec.yaml from backup            |
+| `--update`                | Update SmartPub to the latest version       |
+| `--no-color`              | Disable colored output                      |
+| `--help`                  | Show help information                       |
+| `--version`               | Show version information                    |
 
 ## 🎯 What SmartPub Detects
 
 ### ✅ Used Dependencies
+
 Dependencies that are properly used in your `lib/` directory.
 
 ### 🧩 Misplaced Dependencies
+
 Dependencies used only in `test/`, `bin/`, or `tool/` that should be in `dev_dependencies`.
 
 ### ⚠️ Unused Dependencies
+
 Dependencies declared but never imported in your code.
 
 ### 🔄 Duplicate Dependencies
+
 Packages declared in both `dependencies` and `dev_dependencies` with intelligent recommendations.
 
 ## 📊 Example Output
@@ -130,10 +156,10 @@ Total dependencies scanned: 12
 
 ## 🔧 CI/CD Integration
 
-Use SmartPub in your CI pipeline:
+Use SmartPub in your CI pipeline across different platforms:
 
 ```yaml
-# GitHub Actions example
+# GitHub Actions example (works on ubuntu, windows, macos)
 - name: Check dependencies
   run: |
     dart pub global activate smartpub

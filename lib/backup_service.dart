@@ -2,6 +2,7 @@
 /// 
 /// Handles creating and restoring backups of pubspec.yaml files to ensure
 /// safe dependency modifications with the ability to revert changes.
+library;
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -50,9 +51,7 @@ class BackupService {
   }
   
   /// Check if a backup file exists
-  static bool backupExists() {
-    return File(FileConfig.backupFile).existsSync();
-  }
+  static bool backupExists() => File(FileConfig.backupFile).existsSync();
   
   /// Delete the backup file
   /// Returns true if deletion was successful
@@ -136,7 +135,7 @@ class BackupService {
       }
       
       // Sort by modification time (newest first)
-      backups.sort((a, b) {
+      backups.sort((String a, String b) {
         final fileA = File(a);
         final fileB = File(b);
         return fileB.lastModifiedSync().compareTo(fileA.lastModifiedSync());
@@ -152,6 +151,12 @@ class BackupService {
 
 /// Information about a backup file
 class BackupInfo {
+  
+  BackupInfo({
+    required this.path,
+    required this.size,
+    required this.lastModified,
+  });
   /// Path to the backup file
   final String path;
   
@@ -160,12 +165,6 @@ class BackupInfo {
   
   /// Last modified timestamp
   final DateTime lastModified;
-  
-  BackupInfo({
-    required this.path,
-    required this.size,
-    required this.lastModified,
-  });
   
   /// Get human-readable file size
   String get formattedSize {

@@ -2,6 +2,7 @@
 /// 
 /// Handles colored and structured output for the SmartPub CLI tool.
 /// Provides consistent formatting for analysis results and user feedback.
+library;
 
 import 'package:ansicolor/ansicolor.dart';
 import 'config.dart';
@@ -10,14 +11,14 @@ import 'analyzer.dart';
 
 /// CLI output formatter class
 class CLIOutput {
-  /// Whether colors are disabled
-  final bool noColor;
   
   CLIOutput({this.noColor = false}) {
     if (noColor) {
       ansiColorDisabled = true;
     }
   }
+  /// Whether colors are disabled
+  final bool noColor;
   
   /// Print analysis results in dry-run format
   void printDryRunResults(AnalysisResult result) {
@@ -39,7 +40,7 @@ class CLIOutput {
     
     // Print test-only dependencies that need moving
     final testOnlyInWrongSection = result.testOnlyDependencies
-        .where((dep) => dep.section == DependencySection.dependencies)
+        .where((DependencyInfo dep) => dep.section == DependencySection.dependencies)
         .toList();
     
     if (testOnlyInWrongSection.isNotEmpty) {
@@ -175,7 +176,7 @@ class CLIOutput {
     
     if (result.hasIssues) {
       final issueCount = result.testOnlyDependencies
-          .where((dep) => dep.section == DependencySection.dependencies)
+          .where((DependencyInfo dep) => dep.section == DependencySection.dependencies)
           .length + result.unusedDependencies.length + result.duplicates.length;
       
       _printWarning('$issueCount issue(s) found that can be fixed');

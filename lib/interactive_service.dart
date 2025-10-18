@@ -2,6 +2,7 @@
 /// 
 /// Handles user interaction for the interactive mode, including prompts
 /// and user input validation.
+library;
 
 import 'dart:io';
 
@@ -29,9 +30,7 @@ class InteractiveService {
   }
   
   /// Prompt user to continue with the operation
-  static Future<bool> promptContinue(String message) async {
-    return await promptYesNo('$message Continue? [Y/n]');
-  }
+  static Future<bool> promptContinue(String message) async => promptYesNo('$message Continue? [Y/n]');
   
   /// Show a summary and ask for confirmation
   static Future<bool> confirmChanges(List<String> changes) async {
@@ -46,7 +45,7 @@ class InteractiveService {
     }
     print('');
     
-    return await promptYesNo('Apply these ${changes.length} change(s)? [Y/n]');
+    return promptYesNo('Apply these ${changes.length} change(s)? [Y/n]');
   }
   
   /// Show progress indicator
@@ -120,9 +119,9 @@ class InteractiveService {
   /// Clear the console (cross-platform)
   static void clearConsole() {
     if (Platform.isWindows) {
-      Process.runSync('cls', [], runInShell: true);
+      Process.runSync('cls', <String>[], runInShell: true);
     } else {
-      Process.runSync('clear', [], runInShell: true);
+      Process.runSync('clear', <String>[], runInShell: true);
     }
   }
 }

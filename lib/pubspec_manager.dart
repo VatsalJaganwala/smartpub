@@ -2,6 +2,7 @@
 /// 
 /// Handles reading and writing pubspec.yaml files while preserving comments,
 /// formatting, and structure. Only modifies dependency sections when needed.
+library;
 
 import 'dart:io';
 import 'package:yaml/yaml.dart';
@@ -158,7 +159,7 @@ class PubspecManager {
         final dependencyLineIndices = findDependencyLines(lines, i, fromSection.endIndex);
         
         // Extract the dependency lines
-        dependencyLines = dependencyLineIndices.map((index) => lines[index]).toList();
+        dependencyLines = dependencyLineIndices.map((int index) => lines[index]).toList();
         
         // Remove all lines belonging to this dependency (in reverse order to maintain indices)
         for (int j = dependencyLineIndices.length - 1; j >= 0; j--) {
@@ -312,39 +313,39 @@ class PubspecManager {
 
 /// Data structure for pubspec content
 class PubspecData {
-  final String originalContent;
-  final Map yaml;
   
   PubspecData({
     required this.originalContent,
     required this.yaml,
   });
+  final String originalContent;
+  final Map yaml;
 }
 
 /// Information about a section in pubspec.yaml
 class SectionInfo {
-  final String name;
-  final int startIndex;
-  int endIndex;
   
   SectionInfo({
     required this.name,
     required this.startIndex,
     required this.endIndex,
   });
+  final String name;
+  final int startIndex;
+  int endIndex;
 }
 
 /// Represents a change to be made to dependencies
 class DependencyChange {
-  final String packageName;
-  final ChangeAction action;
-  final String? version;
   
   DependencyChange({
     required this.packageName,
     required this.action,
     this.version,
   });
+  final String packageName;
+  final ChangeAction action;
+  final String? version;
 }
 
 /// Types of changes that can be made to dependencies

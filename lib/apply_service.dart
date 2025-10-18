@@ -2,6 +2,7 @@
 ///
 /// Handles automatic application of dependency fixes including removing unused
 /// dependencies and moving misplaced ones while creating safety backups.
+library;
 
 import 'analyzer.dart';
 import 'backup_service.dart';
@@ -23,7 +24,7 @@ class ApplyService {
         return ApplyResult(
           success: false,
           error: 'Failed to create backup',
-          changes: [],
+          changes: <String>[],
         );
       }
 
@@ -38,7 +39,7 @@ class ApplyService {
 
       // Generate changes for misplaced dependencies
       final misplacedDeps = analysisResult.testOnlyDependencies
-          .where((dep) => dep.section == DependencySection.dependencies)
+          .where((DependencyInfo dep) => dep.section == DependencySection.dependencies)
           .toList();
 
       for (final dep in misplacedDeps) {
@@ -79,7 +80,7 @@ class ApplyService {
           return ApplyResult(
             success: false,
             error: 'Failed to apply changes - backup restored',
-            changes: [],
+            changes: <String>[],
           );
         }
       }
@@ -95,7 +96,7 @@ class ApplyService {
       return ApplyResult(
         success: false,
         error: 'Error applying changes: $e',
-        changes: [],
+        changes: <String>[],
       );
     }
   }
@@ -115,7 +116,7 @@ class ApplyService {
         return ApplyResult(
           success: false,
           error: 'Failed to create backup',
-          changes: [],
+          changes: <String>[],
         );
       }
 
@@ -135,7 +136,7 @@ class ApplyService {
 
       // Prompt for misplaced dependencies
       final misplacedDeps = analysisResult.testOnlyDependencies
-          .where((dep) => dep.section == DependencySection.dependencies)
+          .where((DependencyInfo dep) => dep.section == DependencySection.dependencies)
           .toList();
 
       for (final dep in misplacedDeps) {
@@ -188,7 +189,7 @@ class ApplyService {
           return ApplyResult(
             success: false,
             error: 'Failed to apply changes - backup restored',
-            changes: [],
+            changes: <String>[],
           );
         }
       }
@@ -204,7 +205,7 @@ class ApplyService {
       return ApplyResult(
         success: false,
         error: 'Error applying changes: $e',
-        changes: [],
+        changes: <String>[],
       );
     }
   }
@@ -220,7 +221,7 @@ class ApplyService {
 
     // Preview misplaced dependency moves
     final misplacedDeps = analysisResult.testOnlyDependencies
-        .where((dep) => dep.section == DependencySection.dependencies)
+        .where((DependencyInfo dep) => dep.section == DependencySection.dependencies)
         .toList();
 
     for (final dep in misplacedDeps) {
@@ -245,17 +246,16 @@ class ApplyService {
 
 /// Result of applying dependency changes
 class ApplyResult {
+
+  ApplyResult({
+    required this.success,
+    required this.changes, this.error,
+    this.backupCreated = false,
+  });
   final bool success;
   final String? error;
   final List<String> changes;
   final bool backupCreated;
-
-  ApplyResult({
-    required this.success,
-    this.error,
-    required this.changes,
-    this.backupCreated = false,
-  });
 
   /// Whether any changes were made
   bool get hasChanges => changes.isNotEmpty;

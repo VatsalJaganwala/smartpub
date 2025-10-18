@@ -2,6 +2,7 @@
 /// 
 /// Core analysis engine that scans Dart files and detects dependency usage
 /// patterns to identify unused, misplaced, and duplicate dependencies.
+library;
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -82,14 +83,14 @@ class DependencyAnalyzer {
   /// Extract dependencies from pubspec
   Map<String, dynamic> _extractDependencies(Map pubspec) {
     final deps = pubspec[AnalysisConfig.dependenciesSection];
-    if (deps == null) return {};
+    if (deps == null) return <String, dynamic>{};
     return Map<String, dynamic>.from(deps);
   }
   
   /// Extract dev dependencies from pubspec
   Map<String, dynamic> _extractDevDependencies(Map pubspec) {
     final deps = pubspec[AnalysisConfig.devDependenciesSection];
-    if (deps == null) return {};
+    if (deps == null) return <String, dynamic>{};
     return Map<String, dynamic>.from(deps);
   }
   
@@ -104,7 +105,7 @@ class DependencyAnalyzer {
       if (!directory.existsSync()) continue;
       
       // Recursively find all Dart files
-      await for (final entity in directory.list(recursive: true)) {
+      await for (final FileSystemEntity entity in directory.list(recursive: true)) {
         if (entity is File && entity.path.endsWith(FileConfig.dartExtension)) {
           final content = await entity.readAsString();
           final matches = importRegex.allMatches(content);
@@ -144,13 +145,14 @@ class DependencyAnalyzer {
       return DependencyStatus.unused;
     }
     
-    // If used in lib/, it's properly placed in dependencies
-    if (usage.usedInLib) {
+    // If used in lib/ or bin/, it should stay in main dependencies
+    // bin/ usage means it's needed for the executable, so it stays in dependencies
+    if (usage.usedInLib || usage.usedInBin) {
       return DependencyStatus.used;
     }
     
-    // If only used in test/, bin/, or tool/, it should be in dev_dependencies
-    if (usage.usedInTest || usage.usedInBin || usage.usedInTool) {
+    // If only used in test/ or tool/, it should be in dev_dependencies
+    if (usage.usedInTest || usage.usedInTool) {
       return DependencyStatus.testOnly;
     }
     
@@ -203,33 +205,31 @@ class DependencyAnalyzer {
 
 /// Package usage tracking
 class PackageUsage {
+  
+  PackageUsage({required this.packageName});
   final String packageName;
   bool usedInLib = false;
   bool usedInTest = false;
   bool usedInBin = false;
   bool usedInTool = false;
   
-  PackageUsage({required this.packageName});
-  
   bool get isUsed => usedInLib || usedInTest || usedInBin || usedInTool;
 }
 
 /// Analysis result container
 class AnalysisResult {
-  final List<DependencyInfo> dependencies;
-  final List<DuplicateDependency> duplicates;
-  final int totalScanned;
   
   AnalysisResult({
     required this.dependencies,
     required this.duplicates,
     required this.totalScanned,
   });
+  final List<DependencyInfo> dependencies;
+  final List<DuplicateDependency> duplicates;
+  final int totalScanned;
   
   /// Get dependencies by status
-  List<DependencyInfo> getDependenciesByStatus(DependencyStatus status) {
-    return dependencies.where((dep) => dep.status == status).toList();
-  }
+  List<DependencyInfo> getDependenciesByStatus(DependencyStatus status) => dependencies.where((DependencyInfo dep) => dep.status == status).toList();
   
   /// Get used dependencies
   List<DependencyInfo> get usedDependencies => getDependenciesByStatus(DependencyStatus.used);
@@ -246,11 +246,6 @@ class AnalysisResult {
 
 /// Information about a duplicate dependency
 class DuplicateDependency {
-  final String name;
-  final String dependenciesVersion;
-  final String devDependenciesVersion;
-  final DependencySection recommendedSection;
-  final PackageUsage? usage;
   
   DuplicateDependency({
     required this.name,
@@ -259,6 +254,11 @@ class DuplicateDependency {
     required this.recommendedSection,
     this.usage,
   });
+  final String name;
+  final String dependenciesVersion;
+  final String devDependenciesVersion;
+  final DependencySection recommendedSection;
+  final PackageUsage? usage;
   
   /// Get usage description
   String get usageDescription {

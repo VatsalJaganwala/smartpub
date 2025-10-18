@@ -1,5 +1,7 @@
 # SmartPub Examples
 
+> **The smart way to manage Flutter dependencies.**
+
 This directory contains examples of how to use SmartPub in different scenarios.
 
 ## Basic Usage

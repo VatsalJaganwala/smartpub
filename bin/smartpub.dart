@@ -18,6 +18,7 @@ import 'package:smartpub/analyzer.dart';
 import 'package:smartpub/cli_output.dart';
 import 'package:smartpub/backup_service.dart';
 import 'package:smartpub/apply_service.dart';
+import 'package:smartpub/update_checker.dart';
 import 'package:smartpub/interactive_service.dart';
 
 /// Main entry point for the SmartPub CLI tool
@@ -43,8 +44,7 @@ class SmartPubCLI {
   }
 
   /// Create and configure the argument parser
-  ArgParser _createArgParser() {
-    return ArgParser()
+  ArgParser _createArgParser() => ArgParser()
       ..addFlag(CommandConfig.helpFlag,
           abbr: CommandConfig.helpAbbr,
           help: 'Show help information',
@@ -69,9 +69,12 @@ class SmartPubCLI {
           abbr: CommandConfig.restoreAbbr,
           help: 'Restore pubspec.yaml from backup',
           negatable: false)
+      ..addFlag(CommandConfig.updateFlag,
+          abbr: CommandConfig.updateAbbr,
+          help: 'Update SmartPub to the latest version',
+          negatable: false)
       ..addFlag(CommandConfig.noColorFlag,
           help: 'Disable colored output', negatable: false);
-  }
 
   /// Handle the parsed command and execute appropriate action
   Future<void> _handleCommand(ArgResults results, ArgParser parser) async {
@@ -98,6 +101,12 @@ class SmartPubCLI {
       return;
     }
 
+    // Handle update
+    if (results[CommandConfig.updateFlag] as bool) {
+      await _handleUpdate();
+      return;
+    }
+
     // Verify pubspec.yaml exists
     if (!_pubspecExists()) {
       _printError('${FileConfig.pubspecFile} not found in current directory');
@@ -111,6 +120,9 @@ class SmartPubCLI {
   /// Execute the dependency analysis based on provided flags
   Future<void> _executeAnalysis(ArgResults results) async {
     _printWelcome();
+
+    // Check for updates in background (only for global installations)
+    _checkForUpdatesInBackground();
 
     final isAnalyse = results[CommandConfig.analyseFlag] as bool;
     final shouldApply = results[CommandConfig.applyFlag] as bool;
@@ -209,9 +221,7 @@ class SmartPubCLI {
   }
 
   /// Check if pubspec.yaml exists in current directory
-  bool _pubspecExists() {
-    return File(FileConfig.pubspecFile).existsSync();
-  }
+  bool _pubspecExists() => File(FileConfig.pubspecFile).existsSync();
 
   /// Handle restore command
   Future<void> _handleRestore() async {
@@ -259,10 +269,79 @@ class SmartPubCLI {
     }
   }
 
+  /// Handle update command
+  Future<void> _handleUpdate() async {
+    _printWelcome();
+
+    if (!ansiColorDisabled) {
+      final blue = AnsiPen()..blue();
+      print(blue('🔄 Checking for updates...'));
+    } else {
+      print('Checking for updates...');
+    }
+
+    // Check if globally installed
+    final isGlobal = await UpdateChecker.isGloballyInstalled();
+    if (!isGlobal) {
+      _printError('SmartPub is not globally installed. Please install it first with:');
+      print('dart pub global activate smartpub');
+      exit(ExitCodes.error);
+    }
+
+    // Check for updates
+    final updateInfo = await UpdateChecker.checkForUpdates();
+    
+    if (!updateInfo.isSuccessful) {
+      _printError('Failed to check for updates: ${updateInfo.error}');
+      exit(ExitCodes.error);
+    }
+
+    if (!updateInfo.hasUpdate) {
+      if (!ansiColorDisabled) {
+        final green = AnsiPen()..green();
+        print(green('${OutputConfig.successEmoji} SmartPub is already up to date (${updateInfo.currentVersion})'));
+      } else {
+        print('SUCCESS: SmartPub is already up to date (${updateInfo.currentVersion})');
+      }
+      exit(ExitCodes.success);
+    }
+
+    // Update available
+    if (!ansiColorDisabled) {
+      final yellow = AnsiPen()..yellow();
+      print(yellow('${OutputConfig.warningEmoji} Update available: ${updateInfo.latestVersion} (current: ${updateInfo.currentVersion})'));
+      print(yellow('🔄 Updating SmartPub...'));
+    } else {
+      print('Update available: ${updateInfo.latestVersion} (current: ${updateInfo.currentVersion})');
+      print('Updating SmartPub...');
+    }
+
+    // Run update
+    final success = await UpdateChecker.runUpdate();
+    
+    if (success) {
+      if (!ansiColorDisabled) {
+        final green = AnsiPen()..green();
+        print(green('${OutputConfig.successEmoji} Successfully updated SmartPub to ${updateInfo.latestVersion}'));
+      } else {
+        print('SUCCESS: Successfully updated SmartPub to ${updateInfo.latestVersion}');
+      }
+      
+      // Clear cache after successful update
+      await UpdateChecker.clearCache();
+      exit(ExitCodes.success);
+    } else {
+      _printError('Failed to update SmartPub. Please try manually:');
+      print('dart pub global activate smartpub');
+      exit(ExitCodes.error);
+    }
+  }
+
   /// Display help information
   void _showHelp(ArgParser parser) {
     print('''
 ${OutputConfig.packageEmoji} ${AppConfig.fullTitle}
+The smart way to manage Flutter dependencies.
 
 Analyze, clean, and organize dependencies in your ${FileConfig.pubspecFile} file.
 
@@ -278,6 +357,7 @@ EXAMPLES:
   smartpub --${CommandConfig.interactiveFlag}         # Review and apply changes interactively
   smartpub --${CommandConfig.applyFlag}               # Apply fixes automatically
   smartpub --${CommandConfig.restoreFlag}             # Restore pubspec.yaml from backup
+  smartpub --${CommandConfig.updateFlag}              # Update SmartPub to the latest version
   smartpub --${CommandConfig.noColorFlag}             # Disable colored output
 
 For more information, visit: ${AppConfig.repositoryUrl}
@@ -288,6 +368,26 @@ For more information, visit: ${AppConfig.repositoryUrl}
   void _showVersion() {
     print('${AppConfig.appName} v${AppConfig.version}');
     print(AppConfig.description);
+  }
+
+  /// Check for updates in background and display notification if available
+  void _checkForUpdatesInBackground() {
+    // Run update check in background without blocking main execution
+    UpdateChecker.checkForUpdates().then((UpdateInfo updateInfo) {
+      if (updateInfo.hasUpdate && updateInfo.isSuccessful) {
+        // Display update notification
+        if (!ansiColorDisabled) {
+          final yellow = AnsiPen()..yellow();
+          print(yellow(updateInfo.updateMessage));
+        } else {
+          print('Update available: ${updateInfo.latestVersion} (current: ${updateInfo.currentVersion})');
+          print('Run `dart pub global activate smartpub` to update.');
+        }
+        print('');
+      }
+    }).catchError((error) {
+      // Silently ignore update check errors to not disrupt main functionality
+    });
   }
 
   /// Print welcome message
