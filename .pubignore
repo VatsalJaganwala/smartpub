@@ -1,0 +1,27 @@
+# Flutter-specific directories (not needed for CLI package)
+android/
+ios/
+linux/
+macos/
+web/
+windows/
+
+# Development files
+project_requirement.md
+pubspec.yaml.bak
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Build artifacts
+build/
+.dart_tool/
+
+# Test coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
