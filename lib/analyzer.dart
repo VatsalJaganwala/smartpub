@@ -47,10 +47,10 @@ class DependencyAnalyzer {
         version: dependencies[dep].toString(),
         section: DependencySection.dependencies,
         status: _determineDependencyStatus(dep, usage),
-        usedInLib: usage.usedInLib,
-        usedInTest: usage.usedInTest,
-        usedInBin: usage.usedInBin,
-        usedInTool: usage.usedInTool,
+        usedInLib: usage?.usedInLib ?? false,
+        usedInTest: usage?.usedInTest ?? false,
+        usedInBin: usage?.usedInBin ?? false,
+        usedInTool: usage?.usedInTool ?? false,
       );
       results.add(info);
     }
