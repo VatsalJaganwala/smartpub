@@ -7,7 +7,7 @@ void main() {
   group('SmartPub Tests', () {
     test('AppConfig contains correct values', () {
       expect(AppConfig.appName, equals('SmartPub'));
-      expect(AppConfig.version, equals('1.0.0+1'));
+      expect(AppConfig.version, equals('1.1.0'));
       expect(AppConfig.description, equals('Flutter Dependency Analyzer'));
     });
 

@@ -41,19 +41,18 @@ class DependencyAnalyzer {
       if (dep == AnalysisConfig.flutterSdk) continue; // Skip Flutter SDK
 
       final usage = usageMap[dep];
-      if (usage != null) {
-        final info = DependencyInfo(
-          name: dep,
-          version: dependencies[dep].toString(),
-          section: DependencySection.dependencies,
-          status: _determineDependencyStatus(dep, usage),
-          usedInLib: usage.usedInLib,
-          usedInTest: usage.usedInTest,
-          usedInBin: usage.usedInBin,
-          usedInTool: usage.usedInTool,
-        );
-        results.add(info);
-      }
+
+      final info = DependencyInfo(
+        name: dep,
+        version: dependencies[dep].toString(),
+        section: DependencySection.dependencies,
+        status: _determineDependencyStatus(dep, usage),
+        usedInLib: usage.usedInLib,
+        usedInTest: usage.usedInTest,
+        usedInBin: usage.usedInBin,
+        usedInTool: usage.usedInTool,
+      );
+      results.add(info);
     }
 
     // Analyze dev dependencies
@@ -65,7 +64,7 @@ class DependencyAnalyzer {
         name: dep,
         version: devDependencies[dep].toString(),
         section: DependencySection.devDependencies,
-        status: _determineDependencyStatus(dep, usage),
+        status: _determineDevDependencyStatus(dep, usage),
         usedInLib: usage?.usedInLib ?? false,
         usedInTest: usage?.usedInTest ?? false,
         usedInBin: usage?.usedInBin ?? false,
@@ -169,6 +168,26 @@ class DependencyAnalyzer {
     return DependencyStatus.unused;
   }
 
+  /// Determine the status of a dev dependency based on usage
+  /// For dev dependencies, we only care if they should be moved to dependencies
+  DependencyStatus _determineDevDependencyStatus(
+      String packageName, PackageUsage? usage) {
+    if (usage == null) {
+      // For dev dependencies, unused is acceptable - return used to avoid flagging
+      return DependencyStatus.used;
+    }
+
+    // If used in lib/ or bin/, it should be moved to main dependencies
+    if (usage.usedInLib || usage.usedInBin) {
+      return DependencyStatus
+          .testOnly; // This will trigger "move to dependencies" recommendation
+    }
+
+    // If only used in test/ or tool/, it's correctly placed in dev_dependencies
+    // If unused, it's also acceptable for dev dependencies
+    return DependencyStatus.used;
+  }
+
   /// Find duplicate dependencies (in both dependencies and dev_dependencies)
   List<DuplicateDependency> _findDuplicates(Map<String, dynamic> deps,
       Map<String, dynamic> devDeps, Map<String, PackageUsage> usageMap) {
@@ -257,10 +276,11 @@ class AnalysisResult {
       getDependenciesByStatus(DependencyStatus.unused);
 
   /// Check if there are any issues
-  bool get hasIssues =>
-      testOnlyDependencies.isNotEmpty ||
-      unusedDependencies.isNotEmpty ||
-      duplicates.isNotEmpty;
+  bool get hasIssues {
+    // Check for dependencies that need action
+    final needsAction = dependencies.any((dep) => dep.needsAction);
+    return needsAction || duplicates.isNotEmpty;
+  }
 }
 
 /// Information about a duplicate dependency

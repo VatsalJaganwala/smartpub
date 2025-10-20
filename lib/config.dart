@@ -10,7 +10,7 @@ class AppConfig {
   static const String appName = 'SmartPub';
 
   /// Current version of the application
-  static const String version = '1.0.0';
+  static const String version = '1.0.1';
 
   /// Application description
   static const String description = 'Flutter Dependency Analyzer';

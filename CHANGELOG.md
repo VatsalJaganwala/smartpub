@@ -2,7 +2,16 @@
 
 All notable changes to SmartPub will be documented in this file.
 
-## [1.0.0] - 2024-12-19
+## [1.0.1] - 2025-10-20
+
+### Changed
+
+- 🔧 **Improved Dev Dependencies Handling** - Dev dependencies are no longer flagged as unused, allowing for more flexible development tooling
+- 🎯 **Smarter Dependency Analysis** - Only suggests moving dev dependencies to main dependencies when they're used in `lib/` or `bin/` directories
+- 📈 **Better User Experience** - Reduces noise by not flagging legitimate unused dev dependencies (build tools, linters, etc.)
+
+
+## [1.0.0] - 2025-10-18
 
 ### Added
 

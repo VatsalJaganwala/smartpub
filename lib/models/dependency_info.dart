@@ -67,12 +67,16 @@ class DependencyInfo {
   String get recommendation {
     switch (status) {
       case DependencyStatus.used:
-        return 'Keep in dependencies';
+        if (section == DependencySection.dependencies) {
+          return 'Keep in dependencies';
+        } else {
+          return 'Keep in dev_dependencies';
+        }
       case DependencyStatus.testOnly:
         if (section == DependencySection.dependencies) {
           return 'Move to dev_dependencies';
         } else {
-          return 'Correctly placed in dev_dependencies';
+          return 'Move to dependencies';
         }
       case DependencyStatus.unused:
         return 'Remove (unused)';
@@ -80,10 +84,19 @@ class DependencyInfo {
   }
 
   /// Whether this dependency needs action
-  bool get needsAction =>
-      status == DependencyStatus.unused ||
-      (status == DependencyStatus.testOnly &&
-          section == DependencySection.dependencies);
+  bool get needsAction {
+    if (status == DependencyStatus.unused) {
+      // Only flag unused dependencies in the main dependencies section
+      return section == DependencySection.dependencies;
+    }
+
+    if (status == DependencyStatus.testOnly) {
+      // Flag if it needs to be moved between sections
+      return true;
+    }
+
+    return false;
+  }
 }
 
 /// Dependency status enumeration
