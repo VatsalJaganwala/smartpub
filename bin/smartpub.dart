@@ -123,7 +123,7 @@ class SmartPubCLI {
     _printWelcome();
 
     // Check for updates in background (only for global installations)
-    _checkForUpdatesInBackground();
+    await _checkForUpdatesInBackground();
 
     final isAnalyse = results[CommandConfig.analyseFlag] as bool;
     final shouldApply = results[CommandConfig.applyFlag] as bool;
@@ -287,7 +287,7 @@ class SmartPubCLI {
     }
 
     // Check for updates
-    final updateInfo = await UpdateChecker.checkForUpdates();
+    final updateInfo = await UpdateChecker.checkForUpdates(useCache: false);
 
     if (!updateInfo.isSuccessful) {
       _printError('Failed to check for updates: ${updateInfo.error}');
@@ -375,9 +375,9 @@ For more information, visit: ${AppConfig.repositoryUrl}
   }
 
   /// Check for updates in background and display notification if available
-  void _checkForUpdatesInBackground() {
+  Future<void> _checkForUpdatesInBackground() async {
     // Run update check in background without blocking main execution
-    UpdateChecker.checkForUpdates().then((UpdateInfo updateInfo) {
+    await UpdateChecker.checkForUpdates().then((UpdateInfo updateInfo) {
       if (updateInfo.hasUpdate && updateInfo.isSuccessful) {
         // Display update notification
         if (!ansiColorDisabled) {
@@ -386,7 +386,7 @@ For more information, visit: ${AppConfig.repositoryUrl}
         } else {
           print(
               'Update available: ${updateInfo.latestVersion} (current: ${updateInfo.currentVersion})');
-          print('Run `dart pub global activate smartpub` to update.');
+          print('Run smartpub --update to update.');
         }
         print('');
       }

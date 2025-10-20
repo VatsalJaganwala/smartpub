@@ -22,12 +22,16 @@ class UpdateChecker {
   static const String _pubDevApiUrl = 'https://pub.dev/api/packages/smartpub';
 
   /// Check for updates and return update information
-  static Future<UpdateInfo> checkForUpdates() async {
+  /// [useCache] - if true, uses cached data when available (default: true)
+  /// Set to false for explicit update commands to always check pub.dev
+  static Future<UpdateInfo> checkForUpdates({bool useCache = true}) async {
     try {
-      // Check cache first
-      final cachedInfo = await _getCachedUpdateInfo();
-      if (cachedInfo != null && !_isCacheExpired(cachedInfo.lastChecked)) {
-        return cachedInfo;
+      // Check cache first only if useCache is true
+      if (useCache) {
+        final cachedInfo = await _getCachedUpdateInfo();
+        if (cachedInfo != null && !_isCacheExpired(cachedInfo.lastChecked)) {
+          return cachedInfo;
+        }
       }
 
       // Fetch latest version from pub.dev
@@ -251,7 +255,7 @@ class UpdateInfo {
     if (!hasUpdate) return '';
 
     return '${OutputConfig.warningEmoji} Update available: $latestVersion (current: $currentVersion)\n'
-        'Run `dart pub global activate smartpub` to update.';
+        'Run `smartpub --update` to update.';
   }
 
   /// Whether the check was successful
