@@ -39,7 +39,8 @@ class ApplyService {
 
       // Generate changes for misplaced dependencies
       final misplacedDeps = analysisResult.testOnlyDependencies
-          .where((DependencyInfo dep) => dep.section == DependencySection.dependencies)
+          .where((DependencyInfo dep) =>
+              dep.section == DependencySection.dependencies)
           .toList();
 
       for (final dep in misplacedDeps) {
@@ -136,7 +137,8 @@ class ApplyService {
 
       // Prompt for misplaced dependencies
       final misplacedDeps = analysisResult.testOnlyDependencies
-          .where((DependencyInfo dep) => dep.section == DependencySection.dependencies)
+          .where((DependencyInfo dep) =>
+              dep.section == DependencySection.dependencies)
           .toList();
 
       for (final dep in misplacedDeps) {
@@ -221,7 +223,8 @@ class ApplyService {
 
     // Preview misplaced dependency moves
     final misplacedDeps = analysisResult.testOnlyDependencies
-        .where((DependencyInfo dep) => dep.section == DependencySection.dependencies)
+        .where((DependencyInfo dep) =>
+            dep.section == DependencySection.dependencies)
         .toList();
 
     for (final dep in misplacedDeps) {
@@ -246,10 +249,10 @@ class ApplyService {
 
 /// Result of applying dependency changes
 class ApplyResult {
-
   ApplyResult({
     required this.success,
-    required this.changes, this.error,
+    required this.changes,
+    this.error,
     this.backupCreated = false,
   });
   final bool success;

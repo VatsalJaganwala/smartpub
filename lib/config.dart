@@ -14,7 +14,7 @@ class AppConfig {
 
   /// Application description
   static const String description = 'Flutter Dependency Analyzer';
-  
+
   /// Application tagline
   static const String tagline = 'The smart way to manage Flutter dependencies.';
 

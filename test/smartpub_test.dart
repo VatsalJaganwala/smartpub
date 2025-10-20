@@ -52,8 +52,10 @@ void main() {
     });
 
     test('DependencySection enum extensions work', () {
-      expect(DependencySection.dependencies.displayName, equals('dependencies'));
-      expect(DependencySection.devDependencies.displayName, equals('dev_dependencies'));
+      expect(
+          DependencySection.dependencies.displayName, equals('dependencies'));
+      expect(DependencySection.devDependencies.displayName,
+          equals('dev_dependencies'));
     });
 
     test('PackageUsage tracks usage correctly', () {

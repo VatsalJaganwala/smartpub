@@ -6,7 +6,6 @@ library;
 
 /// Information about a single dependency
 class DependencyInfo {
-
   DependencyInfo({
     required this.name,
     required this.version,
@@ -17,6 +16,7 @@ class DependencyInfo {
     required this.usedInBin,
     required this.usedInTool,
   });
+
   /// Package name
   final String name;
 
@@ -44,12 +44,22 @@ class DependencyInfo {
   /// Get usage description
   String get usageDescription {
     final locations = <String>[];
-    if (usedInLib) locations.add('lib');
-    if (usedInTest) locations.add('test');
-    if (usedInBin) locations.add('bin');
-    if (usedInTool) locations.add('tool');
+    if (usedInLib) {
+      locations.add('lib');
+    }
+    if (usedInTest) {
+      locations.add('test');
+    }
+    if (usedInBin) {
+      locations.add('bin');
+    }
+    if (usedInTool) {
+      locations.add('tool');
+    }
 
-    if (locations.isEmpty) return 'unused';
+    if (locations.isEmpty) {
+      return 'unused';
+    }
     return 'used in ${locations.join(', ')}';
   }
 
@@ -70,9 +80,10 @@ class DependencyInfo {
   }
 
   /// Whether this dependency needs action
-  bool get needsAction => status == DependencyStatus.unused ||
-        (status == DependencyStatus.testOnly &&
-            section == DependencySection.dependencies);
+  bool get needsAction =>
+      status == DependencyStatus.unused ||
+      (status == DependencyStatus.testOnly &&
+          section == DependencySection.dependencies);
 }
 
 /// Dependency status enumeration
