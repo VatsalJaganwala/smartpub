@@ -2,6 +2,20 @@
 
 All notable changes to SmartPub will be documented in this file.
 
+## [1.1.0] - 2025-12-07
+
+### Added
+
+- 📊 **Package Categorization** - Automatically group dependencies by categories using FlutterGems data
+- 🎯 **Category Overrides** - Customize package categories with local `group-overrides.yaml` file
+- 🔄 **Smart Caching** - Local cache with Firestore fallback for fast categorization
+- 🤝 **Interactive Grouping** - Interactive mode for category customization
+- 🛡️ **Safe Grouping** - Automatic backup creation before applying grouping changes
+- 📈 **Multiple Data Sources** - FlutterGems integration with heuristic fallbacks
+- 🎨 **Organized Output** - Clean category headers and alphabetical sorting within categories
+
+*Package categories courtesy of FlutterGems (used with permission).*
+
 ## [1.0.1] - 2025-10-20
 
 ### Changed

@@ -4,11 +4,11 @@
 /// dependencies and moving misplaced ones while creating safety backups.
 library;
 
-import 'analyzer.dart';
-import 'backup_service.dart';
-import 'pubspec_manager.dart';
-import 'models/dependency_info.dart';
-import 'config.dart';
+import '../core/analyzer.dart';
+import '../core/config.dart';
+import '../core/models/dependency_info.dart';
+import '../services/backup_service.dart';
+import '../services/pubspec_manager.dart';
 
 /// Service for applying dependency fixes
 class ApplyService {

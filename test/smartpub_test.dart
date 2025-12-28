@@ -1,13 +1,13 @@
 import 'package:test/test.dart';
-import 'package:smartpub/analyzer.dart';
-import 'package:smartpub/config.dart';
-import 'package:smartpub/models/dependency_info.dart';
+import 'package:smartpub/core/analyzer.dart';
+import 'package:smartpub/core/config.dart';
+import 'package:smartpub/core/models/dependency_info.dart';
 
 void main() {
   group('SmartPub Tests', () {
     test('AppConfig contains correct values', () {
       expect(AppConfig.appName, equals('SmartPub'));
-      expect(AppConfig.version, equals('1.1.0'));
+      expect(AppConfig.version, equals('1.0.1'));
       expect(AppConfig.description, equals('Flutter Dependency Analyzer'));
     });
 

@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
-import 'config.dart';
+import '../core/config.dart';
 
 /// Service for checking and managing SmartPub updates
 class UpdateChecker {

@@ -9,40 +9,41 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-import 'config.dart';
-import 'models/dependency_info.dart';
+import '../core/config.dart';
+import '../core/models/dependency_info.dart';
 
 /// Main dependency analyzer class
 class DependencyAnalyzer {
   /// Analyze dependencies in the current project
   Future<AnalysisResult> analyze() async {
-    final pubspecFile = File(FileConfig.pubspecFile);
+    final File pubspecFile = File(FileConfig.pubspecFile);
 
     if (!pubspecFile.existsSync()) {
       throw Exception('${FileConfig.pubspecFile} not found');
     }
 
     // Parse pubspec.yaml
-    final pubspecContent = await pubspecFile.readAsString();
-    final pubspec = loadYaml(pubspecContent) as Map;
+    final String pubspecContent = await pubspecFile.readAsString();
+    final Map pubspec = loadYaml(pubspecContent) as Map;
 
     // Extract dependencies
-    final dependencies = _extractDependencies(pubspec);
-    final devDependencies = _extractDevDependencies(pubspec);
+    final Map<String, dynamic> dependencies = _extractDependencies(pubspec);
+    final Map<String, dynamic> devDependencies =
+        _extractDevDependencies(pubspec);
 
     // Scan Dart files for imports
-    final usageMap = await _scanDartFiles();
+    final Map<String, PackageUsage> usageMap = await _scanDartFiles();
 
     // Analyze each dependency
-    final results = <DependencyInfo>[];
+    final List<DependencyInfo> results = <DependencyInfo>[];
 
     // Analyze regular dependencies
-    for (final dep in dependencies.keys) {
+    for (final String dep in dependencies.keys) {
       if (dep == AnalysisConfig.flutterSdk) continue; // Skip Flutter SDK
 
-      final usage = usageMap[dep];
+      final PackageUsage? usage = usageMap[dep];
 
-      final info = DependencyInfo(
+      final DependencyInfo info = DependencyInfo(
         name: dep,
         version: dependencies[dep].toString(),
         section: DependencySection.dependencies,
@@ -56,11 +57,11 @@ class DependencyAnalyzer {
     }
 
     // Analyze dev dependencies
-    for (final dep in devDependencies.keys) {
+    for (final String dep in devDependencies.keys) {
       if (dep == AnalysisConfig.flutterSdk) continue; // Skip Flutter SDK
 
-      final usage = usageMap[dep];
-      final info = DependencyInfo(
+      final PackageUsage? usage = usageMap[dep];
+      final DependencyInfo info = DependencyInfo(
         name: dep,
         version: devDependencies[dep].toString(),
         section: DependencySection.devDependencies,
@@ -74,7 +75,8 @@ class DependencyAnalyzer {
     }
 
     // Check for duplicates
-    final duplicates = _findDuplicates(dependencies, devDependencies, usageMap);
+    final List<DuplicateDependency> duplicates =
+        _findDuplicates(dependencies, devDependencies, usageMap);
 
     return AnalysisResult(
       dependencies: results,
@@ -99,32 +101,32 @@ class DependencyAnalyzer {
 
   /// Scan all Dart files for package imports
   Future<Map<String, PackageUsage>> _scanDartFiles() async {
-    final usageMap = <String, PackageUsage>{};
-    final importRegex = RegExp(AnalysisConfig.importPattern);
+    final Map<String, PackageUsage> usageMap = <String, PackageUsage>{};
+    final RegExp importRegex = RegExp(AnalysisConfig.importPattern);
 
     // Scan each directory
-    for (final dir in FileConfig.scanDirectories) {
-      final directory = Directory(dir);
+    for (final String dir in FileConfig.scanDirectories) {
+      final Directory directory = Directory(dir);
       if (!directory.existsSync()) continue;
 
       // Recursively find all Dart files
       await for (final FileSystemEntity entity
           in directory.list(recursive: true)) {
         if (entity is File && entity.path.endsWith(FileConfig.dartExtension)) {
-          final content = await entity.readAsString();
-          final matches = importRegex.allMatches(content);
+          final String content = await entity.readAsString();
+          final Iterable<RegExpMatch> matches = importRegex.allMatches(content);
 
-          for (final match in matches) {
-            final packageName = match.group(1);
+          for (final RegExpMatch match in matches) {
+            final String? packageName = match.group(1);
             if (packageName == null) continue;
 
-            final usage = usageMap.putIfAbsent(
+            final PackageUsage usage = usageMap.putIfAbsent(
               packageName,
               () => PackageUsage(packageName: packageName),
             );
 
             // Determine which directory this file is in
-            final relativePath = path.relative(entity.path);
+            final String relativePath = path.relative(entity.path);
 
             if (relativePath.startsWith('lib${path.separator}') ||
                 relativePath.startsWith('lib/')) {
@@ -191,12 +193,13 @@ class DependencyAnalyzer {
   /// Find duplicate dependencies (in both dependencies and dev_dependencies)
   List<DuplicateDependency> _findDuplicates(Map<String, dynamic> deps,
       Map<String, dynamic> devDeps, Map<String, PackageUsage> usageMap) {
-    final duplicates = <DuplicateDependency>[];
+    final List<DuplicateDependency> duplicates = <DuplicateDependency>[];
 
-    for (final dep in deps.keys) {
+    for (final String dep in deps.keys) {
       if (devDeps.containsKey(dep) && dep != AnalysisConfig.flutterSdk) {
-        final usage = usageMap[dep];
-        final recommendedSection = _getRecommendedSection(dep, usage);
+        final PackageUsage? usage = usageMap[dep];
+        final DependencySection recommendedSection =
+            _getRecommendedSection(dep, usage);
 
         duplicates.add(DuplicateDependency(
           name: dep,
@@ -278,7 +281,8 @@ class AnalysisResult {
   /// Check if there are any issues
   bool get hasIssues {
     // Check for dependencies that need action
-    final needsAction = dependencies.any((dep) => dep.needsAction);
+    final bool needsAction =
+        dependencies.any((DependencyInfo dep) => dep.needsAction);
     return needsAction || duplicates.isNotEmpty;
   }
 }
@@ -303,7 +307,7 @@ class DuplicateDependency {
   String get usageDescription {
     if (usage == null) return 'unused';
 
-    final locations = <String>[];
+    final List<String> locations = <String>[];
     if (usage!.usedInLib) locations.add('lib');
     if (usage!.usedInTest) locations.add('test');
     if (usage!.usedInBin) locations.add('bin');
@@ -315,9 +319,10 @@ class DuplicateDependency {
 
   /// Get recommendation message
   String get recommendationMessage {
-    final sectionName = recommendedSection == DependencySection.dependencies
-        ? 'dependencies'
-        : 'dev_dependencies';
+    final String sectionName =
+        recommendedSection == DependencySection.dependencies
+            ? 'dependencies'
+            : 'dev_dependencies';
     return 'Keep in $sectionName ($usageDescription)';
   }
 

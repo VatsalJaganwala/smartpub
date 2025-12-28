@@ -14,13 +14,17 @@ import 'dart:io';
 
 import 'package:ansicolor/ansicolor.dart';
 import 'package:args/args.dart';
-import 'package:smartpub/analyzer.dart';
-import 'package:smartpub/apply_service.dart';
-import 'package:smartpub/backup_service.dart';
-import 'package:smartpub/cli_output.dart';
-import 'package:smartpub/config.dart';
-import 'package:smartpub/interactive_service.dart';
-import 'package:smartpub/update_checker.dart';
+import 'package:smartpub/core/analyzer.dart';
+import 'package:smartpub/core/config.dart';
+import 'package:smartpub/core/models/dependency_info.dart';
+import 'package:smartpub/services/apply_service.dart';
+import 'package:smartpub/services/backup_service.dart';
+import 'package:smartpub/services/update_checker.dart';
+import 'package:smartpub/categorization/gems_integration.dart';
+import 'package:smartpub/categorization/grouping_service.dart';
+import 'package:smartpub/ui/cli_output.dart';
+import 'package:smartpub/ui/interactive_service.dart';
+import 'package:smartpub/ui/interactive_grouping_service.dart';
 
 /// Main entry point for the SmartPub CLI tool
 void main(List<String> arguments) async {
@@ -75,7 +79,24 @@ class SmartPubCLI {
         help: 'Update SmartPub to the latest version',
         negatable: false)
     ..addFlag(CommandConfig.noColorFlag,
-        help: 'Disable colored output', negatable: false);
+        help: 'Disable colored output', negatable: false)
+    // New categorization flags
+    ..addFlag(CommandConfig.avoidGemsFlag,
+        help: 'Use FlutterGems for package categorization', defaultsTo: true)
+    ..addFlag(CommandConfig.updateCacheFlag,
+        help: 'Force update local cache from Firestore', negatable: false)
+    ..addFlag(CommandConfig.refreshRemoteFlag,
+        help: 'Refresh remote data sources', negatable: false)
+    ..addFlag(CommandConfig.fetchGemsFallbackFlag,
+        help: 'Allow fallback to realtime FlutterGems fetch', negatable: false)
+    ..addFlag(CommandConfig.suggestFlag,
+        help: 'Submit suggestions for missing packages', negatable: false)
+    ..addFlag(CommandConfig.groupFlag,
+        abbr: CommandConfig.groupAbbr,
+        help: 'Group dependencies by categories',
+        negatable: false)
+    ..addFlag(CommandConfig.noTelemetryFlag,
+        help: 'Disable telemetry collection', negatable: false);
 
   /// Handle the parsed command and execute appropriate action
   Future<void> _handleCommand(ArgResults results, ArgParser parser) async {
@@ -130,15 +151,58 @@ class SmartPubCLI {
     final isInteractive = results[CommandConfig.interactiveFlag] as bool;
     final noColor = results[CommandConfig.noColorFlag] as bool;
 
+    // New categorization flags
+    final useGems = !(results[CommandConfig.avoidGemsFlag] as bool);
+    final updateCache = results[CommandConfig.updateCacheFlag] as bool;
+    final refreshRemote = results[CommandConfig.refreshRemoteFlag] as bool;
+    final fetchGemsFallback =
+        results[CommandConfig.fetchGemsFallbackFlag] as bool;
+    final suggest = results[CommandConfig.suggestFlag] as bool;
+    final group = results[CommandConfig.groupFlag] as bool;
+    final noTelemetry = results[CommandConfig.noTelemetryFlag] as bool;
+
     // Create output formatter
     final output = CLIOutput(noColor: noColor);
 
     try {
+      // Initialize gems integration if grouping is enabled
+      GemsIntegration? gemsIntegration;
+      GroupingService? groupingService;
+
+      if (group) {
+        gemsIntegration = GemsIntegration(
+          updateCache: updateCache || refreshRemote,
+          fetchGemsFallback: true,
+        );
+
+        output.printInfo('🔄 Initializing package categorization...');
+        await gemsIntegration.initialize();
+
+        // Load group overrides
+        final groupOverrides = await loadGroupOverrides();
+        groupingService = GroupingService(
+          gemsIntegration: gemsIntegration,
+          groupOverrides: groupOverrides,
+        );
+      }
+
       // Create analyzer and run analysis
       final analyzer = DependencyAnalyzer();
       output.printInfo('${OutputConfig.searchEmoji} Scanning dependencies...');
 
       final analysisResult = await analyzer.analyze();
+
+      // Handle grouping if requested
+      if (group && groupingService != null) {
+        await _handleGrouping(
+          analysisResult,
+          groupingService,
+          output,
+          shouldApply,
+          isInteractive,
+        );
+        return;
+      }
 
       if (isInteractive) {
         // Interactive mode - analyze and prompt for changes
@@ -363,6 +427,13 @@ EXAMPLES:
   smartpub --${CommandConfig.restoreFlag}             # Restore pubspec.yaml from backup
   smartpub --${CommandConfig.updateFlag}              # Update SmartPub to the latest version
   smartpub --${CommandConfig.noColorFlag}             # Disable colored output
+  
+  # Package Categorization Examples:
+  smartpub --${CommandConfig.groupFlag}               # Preview dependency grouping by categories
+  smartpub --${CommandConfig.groupFlag} --${CommandConfig.applyFlag}        # Apply dependency grouping
+  smartpub --${CommandConfig.groupFlag} --${CommandConfig.interactiveFlag}  # Interactive grouping mode
+  smartpub --${CommandConfig.updateCacheFlag}         # Update local category cache
+  smartpub --${CommandConfig.fetchGemsFallbackFlag}   # Enable FlutterGems fallback for missing packages
 
 For more information, visit: ${AppConfig.repositoryUrl}
 ''');
@@ -404,6 +475,112 @@ For more information, visit: ${AppConfig.repositoryUrl}
       print(AppConfig.fullTitle);
     }
     print('');
+  }
+
+  /// Handle grouping functionality
+  Future<void> _handleGrouping(
+    AnalysisResult analysisResult,
+    GroupingService groupingService,
+    CLIOutput output,
+    bool shouldApply,
+    bool isInteractive,
+  ) async {
+    output.printInfo('📊 Grouping dependencies by categories...');
+
+    // Separate dependencies by section
+    final regularDeps = analysisResult.dependencies
+        .where((dep) => dep.section == DependencySection.dependencies)
+        .toList();
+    final devDeps = analysisResult.dependencies
+        .where((dep) => dep.section == DependencySection.devDependencies)
+        .toList();
+
+    // Group dependencies
+    final groupedDeps = await groupingService.groupDependencies(regularDeps);
+    final groupedDevDeps = await groupingService.groupDependencies(devDeps);
+
+    // Generate preview
+    final preview =
+        groupingService.generatePreview(groupedDeps, groupedDevDeps);
+
+    output.printInfo('📋 Grouped Dependencies Preview:');
+    print('');
+    print(preview);
+
+    // Show summary
+    final totalPackages =
+        groupedDeps.totalPackages + groupedDevDeps.totalPackages;
+    final totalCategories =
+        groupedDeps.categoryCount + groupedDevDeps.categoryCount;
+
+    output.printInfo(
+        '📈 Summary: $totalPackages packages in $totalCategories categories');
+
+    if (shouldApply) {
+      // Apply grouping
+      output.printInfo('🚀 Applying grouping to pubspec.yaml...');
+
+      // Create backup
+      final backupSuccess = await BackupService.createBackup();
+      if (!backupSuccess) {
+        output.printError('Failed to create backup');
+        exit(ExitCodes.error);
+      }
+
+      try {
+        final groupedContent = await groupingService.generateGroupedPubspec(
+          groupedDeps,
+          groupedDevDeps,
+        );
+
+        final pubspecFile = File(FileConfig.pubspecFile);
+        await pubspecFile.writeAsString(groupedContent);
+
+        output.printBackupCreated();
+        output.printSuccess(
+            '${OutputConfig.successEmoji} Dependencies grouped successfully');
+      } catch (e) {
+        output.printError('Failed to apply grouping: $e');
+        exit(ExitCodes.error);
+      }
+    } else if (isInteractive) {
+      // Interactive mode - allow category overrides
+      await _handleInteractiveGrouping(groupingService, output);
+    }
+  }
+
+  /// Handle interactive grouping with category overrides
+  Future<void> _handleInteractiveGrouping(
+    GroupingService groupingService,
+    CLIOutput output,
+  ) async {
+    output.printInfo('🤝 Interactive grouping mode');
+
+    final shouldOverride = InteractiveGroupingService.promptYesNo(
+      'Would you like to override any package categories?',
+      defaultValue: false,
+    );
+
+    if (shouldOverride) {
+      final interactiveService = InteractiveGroupingService(
+        gemsIntegration: groupingService.gemsIntegration,
+      );
+
+      interactiveService.showAvailableCategories();
+
+      // Get all dependencies for override prompting
+      final analyzer = DependencyAnalyzer();
+      final analysisResult = await analyzer.analyze();
+
+      await interactiveService.promptForOverrides(analysisResult.dependencies);
+
+      output.printInfo(
+          '✅ Overrides saved. Run with --group --apply to apply grouping.');
+    } else {
+      output.printInfo('Use --apply to apply the grouping shown above');
+      output.printInfo(
+          'To override categories later, edit group-overrides.yaml and run again');
+    }
   }
 
   /// Print error message

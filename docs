@@ -1,0 +1,245 @@
+**TASK PROMPT — Implement FlutterGems-powered Package Categorization (SmartPub)**
+
+**Context**
+
+* Project: **SmartPub** (Dart CLI) — current live feature: *remove unused packages*.
+* New feature: Add **package categorization + grouping** using **FlutterGems categories** as the primary source, with Firestore as a canonical cache. Provide local caching and polite fallback to realtime FlutterGems fetch only for missing items. Provide CLI preview, interactive overrides, suggestion flow, and safe `--apply` behavior.
+
+**High-level goals**
+
+1. Use FlutterGems as the authoritative category source (if available).
+2. Maintain a canonical, read-mostly Firestore DB for package → categories.
+3. SmartPub CLI should:
+
+   * read local cache `.smartpub/cache/gems.json`,
+   * query Firestore (public read) for missing items,
+   * fallback to realtime FlutterGems fetch only when allowed (flag `--fetch-gems-fallback`),
+   * produce grouped `pubspec.yaml` preview with category comment headers,
+   * support interactive overrides and `--apply` with backup.
+4. Provide a maintainers-only scraper and ingest flow that populates Firestore (separate script/CI).
+5. Add suggestion endpoint and suggestion workflow (CLI → suggestions collection for review).
+6. Respect rate limits, caching TTL, security rules, and keep sensitive credentials out of the CLI.
+
+---
+
+## Deliverables (what to produce)
+
+1. **Dart CLI changes** (SmartPub):
+
+   * New module `lib/gems_integration.dart` or similar.
+   * CLI flags: `--use-gems` (default true), `--update-cache`, `--refresh-remote`, `--fetch-gems-fallback` (default false), `--suggest`, `--group`, `--apply`, `--interactive`, `--no-telemetry`.
+   * Flow: local cache → Firestore → realtime FlutterGems (optional). Cache writes to local file.
+   * Grouping renderer: put category header comments above grouped packages; preserve original version/spec; backup `pubspec.yaml` before writing.
+   * Interactive override flow writes `group-overrides.yaml` locally and optionally submits a suggestion entry.
+   * Unit tests + integration tests for grouping logic and fallback flows.
+2. **Firestore schema & rules**:
+
+   * Collection `packages/{packageName}` with document fields:
+
+     ```json
+     {
+       "name": "dio",
+       "categories": ["Networking", "HTTP Clients"],
+       "primaryCategory": "Networking",
+       "sources": { "fluttergems": { "url": "...", "lastFetched": "...", "raw": "..." }, "pubdev": {...}, "manual": {...} },
+       "confidence": 0.96,
+       "lastUpdated": "2025-12-07T10:35:00Z",
+       "verified": true,
+       "history": [ { "when":"...", "by":"scraper", "action":"set", "details":{...} } ]
+     }
+     ```
+   * Firestore rules: public reads allowed; writes allowed only for admin/service account (Cloud Function).
+3. **Ingest API (Cloud Function)**
+
+   * POST `/ingest/package` (authenticated): upsert package doc, append history. Validate payload.
+   * POST `/suggest/package` (public or auth optional, rate-limited): store suggestion in `suggestions` collection for review.
+   * Add `health` endpoint.
+   * Secure writes with service account / signed token.
+4. **Scraper script**
+
+   * `scripts/update_gems_db.dart` (or Node) — fetch `https://fluttergems.dev/sitemap.xml`, parse package pages with polite throttling (concurrency default 8, delay 150–300ms), call ingest API to upsert docs.
+   * Produce `.smartpub_gems.json` sample and logs.
+   * Use `User-Agent: SmartPub/1.0 (+<repo/contact>)`.
+   * Fallback behavior and robust error handling/logging.
+5. **Local caching**
+
+   * Cache path: `.smartpub/cache/gems.json` with `fetchedAt` per package.
+   * Default TTL: 30 days. CLI `--update-cache` forces refresh from Firestore.
+6. **Preview & apply**
+
+   * Preview prints grouped YAML snippet and a small confidence summary. Optionally show inline diff (old → new).
+   * `--interactive` allows editing categories per package before applying.
+   * `--apply` backs up `pubspec.yaml` to `pubspec.yaml.bak` then writes updated file.
+7. **Testing**
+
+   * Unit tests for classifyPackage (gems db + fallbacks).
+   * Integration test: read sample `pubspec.yaml` and assert grouped output contains categories and preserves specs.
+   * Test fallback logic when Firestore doc missing and realtime fetch returns nothing.
+8. **Telemetry & opt-in**
+
+   * Collect aggregate opt-in telemetry: cache hit ratio, #fallbacks, #suggestions; no PII.
+9. **Documentation**
+
+   * README updates: describe flags, caching, Firestore usage, maintainer commands (`--update-gems-db`).
+   * Attribution line: “Package categories courtesy of FlutterGems (used with permission)”.
+10. **CI**
+
+    * Add nightly job to run scraper (maintainer-controlled) to update Firestore via ingest API; monitor parsing error rate and logs.
+
+---
+
+## Implementation details & code snippets (for the agent to follow)
+
+### 1) CLI lookup pseudocode (Dart)
+
+```dart
+final cachePath = Path('.smartpub/cache/gems.json');
+final gemsDbLocal = loadLocalCache(cachePath);
+
+String classifyPackage(String pkg) {
+  if (gemsDbLocal.contains(pkg)) return gemsDbLocal[pkg].primaryCategory;
+  final firestoreDoc = fetchFirestorePackage(pkg);  // REST GET, public read
+  if (firestoreDoc != null) {
+    writeToLocalCache(pkg, firestoreDoc);
+    return firestoreDoc['primaryCategory'];
+  }
+  if (flags.fetchGemsFallback) {
+    final gemsCats = fetchFlutterGemsPage(pkg);
+    if (gemsCats != null) {
+      // Save locally (and optionally POST /suggest/package)
+      writeToLocalCache(pkg, { categories: gemsCats, source: 'fluttergems' });
+      return choosePrimary(gemsCats);
+    }
+  }
+  return inferCategoryByName(pkg); // heuristics fallback
+}
+```
+
+### 2) Firestore REST GET example
+
+```
+GET https://firestore.googleapis.com/v1/projects/<PROJECT-ID>/databases/(default)/documents/packages/<pkg>
+```
+
+Handle 404 as "not found".
+
+### 3) Ingest API payload (POST /ingest/package)
+
+```json
+{
+  "name": "dio",
+  "categories": ["Networking", "HTTP Clients"],
+  "primaryCategory": "Networking",
+  "source": "fluttergems",
+  "raw": "parsed category string or HTML snippet",
+  "confidence": 0.98
+}
+```
+
+### 4) Suggest API payload (POST /suggest/package)
+
+```json
+{
+  "name": "custom_package",
+  "categories": ["Misc / Utilities"],
+  "source": "cli-suggestion",
+  "notes": "Suggested by SmartPub user X",
+  "submittedAt": "2025-12-07T10:32:00Z"
+}
+```
+
+### 5) Firestore rules (pseudocode)
+
+```
+match /packages/{doc} {
+  allow read: if true;
+  allow write: if request.auth.token.admin == true; // only server/admin
+}
+match /suggestions/{doc} {
+  allow create: if true; // or rate-limited via Cloud Function
+  allow read, delete, update: if request.auth.token.admin == true;
+}
+```
+
+---
+
+## Acceptance criteria (must pass)
+
+* [ ] SmartPub CLI groups dependencies using categories from local cache and Firestore (no regression to removing-unused feature).
+* [ ] CLI respects cache TTL and uses Firestore fallback for missing packages.
+* [ ] CLI preview shows grouped YAML with category comment headers and preserves dependency spec formats and versions.
+* [ ] `--apply` creates `pubspec.yaml.bak` and writes updated file.
+* [ ] `--interactive` allows per-package override and persists local overrides to `group-overrides.yaml`.
+* [ ] Suggestions flow stores suggestions in `suggestions` collection when requested.
+* [ ] Scraper script ingests a substantial set of entries into Firestore via ingest API and appends history entries.
+* [ ] Firestore rules prevent unauthorized writes.
+* [ ] Unit & integration tests cover classification paths and fallback flows.
+* [ ] README and CLI help updated with examples and attribution.
+
+---
+
+## Test scenarios to implement
+
+1. **Happy path**: package exists in local cache → used → grouped output shows category.
+2. **Firestore only**: cache empty, Firestore has doc → fetched → cached locally.
+3. **Missing**: not in cache, not in Firestore, fallback disabled → heuristic used.
+4. **Realtime fallback**: not in cache, not in Firestore, fallback enabled, FlutterGems returns categories → used → cached → suggestion posted (if `--suggest`).
+5. **Apply**: `--apply` writes file and backup exists with prior content.
+6. **Interactive override**: user overrides a package category; check `group-overrides.yaml` updated.
+7. **Unauthorized write attempt**: CLI does not write to Firestore (ensures client-only reads).
+8. **Scraper edge**: invalid/flaky HTML on FlutterGems pages logged and skipped, failure rate > X triggers CI alert.
+
+---
+
+## Non-functional requirements
+
+* CLI latency: using local cache should be fast (<200ms lookups). Firestore reads async; single-run should not perform >1 HTTP read per package (use batch if needed or only read on miss).
+* Robustness: network errors should fallback gracefully and not break CLI run.
+* Respect FlutterGems: use polite throttle, provide `User-Agent`, and keep scrapes off by default (only run by maintainers/CI).
+* Logging: structured logs for scraper & ingest API to diagnose parse issues.
+* Security: do not include service account or admin keys in the CLI. Cloud Function uses service account for Firestore writes.
+
+---
+
+## Suggested implementation milestones (small PRs)
+
+1. Add `lib/gems_integration.dart` and minimal classifyPackage implementation using local cache + heuristics.
+2. Add Firestore REST GET integration and `--update-cache` flag; tests for fetching.
+3. Add grouping renderer + preview + `--interactive` override write to `group-overrides.yaml`.
+4. Add `--apply` implementation with backup.
+5. Add suggestion posting (`--suggest`) to ingest API endpoint.
+6. Add scraper & ingest Cloud Function (maintainer repository).
+7. Add CI scheduled job to run scraper and ingest.
+8. Add tests, docs, and telemetry.
+
+---
+
+## Dev notes, conventions & commit messages
+
+* Use small commits per logical change: `feat(gems): add local cache loader`, `feat(gems): add firestore fallback read`, `feat(gems): add grouping renderer and preview`, `feat(gems): add interactive overrides`.
+* Include unit tests with `pub run test`.
+* Add CLI help entries for new flags.
+* Document maintenance run for `scripts/update_gems_db.dart`.
+
+---
+
+## Extra: example CLI usage (to include in README)
+
+```
+# Preview grouping (uses local cache + Firestore)
+smartpub --group --use-gems --interactive
+
+# Force-refresh local cache from Firestore
+smartpub --update-cache
+
+# Preview and apply grouping (non-interactive)
+smartpub --group --use-gems --apply
+
+# Suggest missing packages to maintainers
+smartpub --group --use-gems --fetch-gems-fallback --suggest
+```
+
+---
+
+**Finish state expected:** PR merged into main with tests passing and README updated; maintainers have the scraper & ingest pipeline ready in CI (or a plan documented to run nightly).
+

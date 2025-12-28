@@ -27,12 +27,6 @@ dependencies:
 
   # XML, YAML & Interchange Formats
   yaml: ^3.1.2
-  # Color Picker & Utilities
-  # Command Line (CLI) or Console
-  # File, Folder & Path Utilities
-  # HTML, CSS & SASS
-  # HTTP Client & Utilities
-  # XML, YAML & Interchange Formats
   # Networking
   # HTML Parsing
   # Utilities
@@ -42,8 +36,6 @@ dev_dependencies:
 
   # Linter
   flutter_lints: ^6.0.0
-  # Testing
-  # Linter
   # Testing
   # Development Tools
 executables:

@@ -11,9 +11,11 @@ A cross-platform Dart/Flutter developer tool that analyzes and cleans dependenci
 
 - 🔍 **Smart Analysis** - Scans your entire project to detect dependency usage patterns
 - 🧹 **Auto-Fix** - Automatically removes unused dependencies and fixes misplaced ones
+- 📊 **Package Categorization** - Groups dependencies by categories using FlutterGems data
 - 🤝 **Interactive Mode** - Prompts for confirmation before making changes
 - 🛡️ **Safety First** - Creates backups before modifications with easy restore
-- 📊 **Duplicate Detection** - Finds and resolves duplicate dependencies with version conflicts
+- 📈 **Duplicate Detection** - Finds and resolves duplicate dependencies with version conflicts
+- 🎯 **Category Overrides** - Customize package categories with local overrides
 
 ## 🌐 Platform Support
 
@@ -109,6 +111,87 @@ smartpub --analyse --no-color
 | `--no-color`              | Disable colored output                      |
 | `--help`                  | Show help information                       |
 | `--version`               | Show version information                    |
+
+### 📊 Package Categorization Commands
+
+| Command                        | Description                                    |
+| -------------------------------- | ------------------------------------------------ |
+| `--group`                      | Preview dependency grouping by categories      |
+| `--group --apply`              | Apply dependency grouping to pubspec.yaml     |
+| `--group --interactive`        | Interactive grouping with category overrides  |
+| `--update-cache`               | Force update user-level category cache        |
+| `--fetch-gems-fallback`        | Enable FlutterGems fallback for missing data  |
+| `--use-gems` / `--no-use-gems` | Enable/disable FlutterGems categorization     |
+
+## 📊 Package Categorization
+
+SmartPub can automatically group your dependencies by categories using data from FlutterGems, making your `pubspec.yaml` more organized and easier to navigate.
+
+### 🚀 Quick Start
+
+```bash
+# Preview dependency grouping
+smartpub --group
+
+# Apply grouping to pubspec.yaml
+smartpub --group --apply
+
+# Interactive mode with category overrides
+smartpub --group --interactive
+```
+
+### 📋 Available Categories
+
+- **State Management** - BLoC, Provider, Riverpod, Redux, MobX
+- **Networking** - HTTP clients, API libraries, GraphQL
+- **Database** - SQLite, Hive, SharedPreferences, storage solutions
+- **UI Components** - Widgets, animations, image handling, charts
+- **Navigation** - Routing and navigation libraries
+- **Authentication** - Auth providers and security libraries
+- **Testing** - Test frameworks, mocking, and testing utilities
+- **Development Tools** - Code generation, linting, build tools
+- **Utilities** - Helper libraries and common utilities
+
+### 🎯 Category Overrides
+
+Create a `group-overrides.yaml` file to customize package categories:
+
+```yaml
+# Package category overrides
+# Format: package_name: Category Name
+
+http: Custom Networking
+my_package: Custom Category
+```
+
+### 📈 Example Output
+
+```yaml
+dependencies:
+  # State Management
+  flutter_bloc: ^8.1.0
+  provider: ^6.0.0
+
+  # Networking
+  dio: ^5.0.0
+  http: ^1.1.0
+
+  # UI Components
+  cached_network_image: ^3.2.0
+  flutter_svg: ^2.0.0
+
+dev_dependencies:
+  # Testing
+  flutter_test:
+    sdk: flutter
+  mockito: ^5.4.0
+
+  # Development Tools
+  build_runner: ^2.4.0
+  json_serializable: ^6.7.0
+```
+
+*Package categories courtesy of FlutterGems (used with permission).*
 
 ## 🎯 What SmartPub Detects
 

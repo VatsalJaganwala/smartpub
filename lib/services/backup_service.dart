@@ -6,7 +6,7 @@ library;
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import 'config.dart';
+import '../core/config.dart';
 
 /// Service for managing pubspec.yaml backups
 class BackupService {

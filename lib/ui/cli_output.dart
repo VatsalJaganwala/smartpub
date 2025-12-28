@@ -5,9 +5,9 @@
 library;
 
 import 'package:ansicolor/ansicolor.dart';
-import 'config.dart';
-import 'models/dependency_info.dart';
-import 'analyzer.dart';
+import '../core/config.dart';
+import '../core/models/dependency_info.dart';
+import '../core/analyzer.dart';
 
 /// CLI output formatter class
 class CLIOutput {

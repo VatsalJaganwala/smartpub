@@ -6,7 +6,8 @@ library;
 
 import 'dart:io';
 import 'package:yaml/yaml.dart';
-import 'config.dart';
+import '../categorization/grouping_service.dart';
+import '../core/config.dart';
 
 /// Manager for pubspec.yaml file operations
 class PubspecManager {
@@ -335,18 +336,6 @@ class PubspecData {
   });
   final String originalContent;
   final Map yaml;
-}
-
-/// Information about a section in pubspec.yaml
-class SectionInfo {
-  SectionInfo({
-    required this.name,
-    required this.startIndex,
-    required this.endIndex,
-  });
-  final String name;
-  final int startIndex;
-  int endIndex;
 }
 
 /// Represents a change to be made to dependencies

@@ -231,6 +231,15 @@ class CommandConfig {
   static const String restoreFlag = 'restore';
   static const String updateFlag = 'update';
 
+  // New categorization flags
+  static const String avoidGemsFlag = 'avoid-gems';
+  static const String updateCacheFlag = 'update-cache';
+  static const String refreshRemoteFlag = 'refresh-remote';
+  static const String fetchGemsFallbackFlag = 'fetch-gems-fallback';
+  static const String suggestFlag = 'suggest';
+  static const String groupFlag = 'group';
+  static const String noTelemetryFlag = 'no-telemetry';
+
   /// Command abbreviations
   static const String helpAbbr = 'h';
   static const String versionAbbr = 'v';
@@ -240,6 +249,23 @@ class CommandConfig {
   static const String organizeAbbr = 'o';
   static const String restoreAbbr = 'r';
   static const String updateAbbr = 'u';
+
+  // New categorization abbreviations
+  static const String groupAbbr = 'g';
+}
+
+/// Categorization configuration and defaults
+class CategorizationConfig {
+  /// Default values for categorization features
+  static const bool defaultUseGems = true;
+  static const bool defaultUpdateCache = false;
+  static const bool defaultFetchGemsFallback = false;
+  static const String defaultFirestoreProjectId = 'smartpub-vj';
+
+  /// Cache configuration - uses user-level cache directory
+  static const String userCacheDirectory = '.smartpub';
+  static const String cacheFileName = 'gems_cache.json';
+  static const int cacheTtlDays = 30;
 }
 
 /// Exit codes for different scenarios
