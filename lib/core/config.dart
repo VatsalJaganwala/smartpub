@@ -10,7 +10,7 @@ class AppConfig {
   static const String appName = 'SmartPub';
 
   /// Current version of the application
-  static const String version = '1.0.1';
+  static const String version = '1.0.2';
 
   /// Application description
   static const String description = 'Flutter Dependency Analyzer';
@@ -206,13 +206,27 @@ class PackageCategories {
 
   /// Get category for a package name
   static String getCategoryForPackage(String packageName) {
-    if (widgetPackages.contains(packageName)) return widgets;
-    if (apiPackages.contains(packageName)) return api;
-    if (statePackages.contains(packageName)) return stateManagement;
-    if (databasePackages.contains(packageName)) return database;
-    if (utilityPackages.contains(packageName)) return utilities;
-    if (testingPackages.contains(packageName)) return testing;
-    if (devToolPackages.contains(packageName)) return devTools;
+    if (widgetPackages.contains(packageName)) {
+      return widgets;
+    }
+    if (apiPackages.contains(packageName)) {
+      return api;
+    }
+    if (statePackages.contains(packageName)) {
+      return stateManagement;
+    }
+    if (databasePackages.contains(packageName)) {
+      return database;
+    }
+    if (utilityPackages.contains(packageName)) {
+      return utilities;
+    }
+    if (testingPackages.contains(packageName)) {
+      return testing;
+    }
+    if (devToolPackages.contains(packageName)) {
+      return devTools;
+    }
     return miscellaneous;
   }
 }
@@ -223,7 +237,8 @@ class CommandConfig {
   static const String helpFlag = 'help';
   static const String versionFlag = 'version';
   static const String analyseFlag = 'analyse';
-  static const String applyFlag = 'apply';
+  static const String cleanFlag = 'clean';
+  static const String applyFlag = 'apply'; // Deprecated, use cleanFlag
   static const String interactiveFlag = 'interactive';
   static const String noColorFlag = 'no-color';
   static const String organizeFlag = 'organize';
@@ -244,7 +259,8 @@ class CommandConfig {
   static const String helpAbbr = 'h';
   static const String versionAbbr = 'v';
   static const String analyseAbbr = 'a';
-  static const String applyAbbr = 'p';
+  static const String cleanAbbr = 'c';
+  static const String applyAbbr = 'p'; // Deprecated, use cleanAbbr
   static const String interactiveAbbr = 'i';
   static const String organizeAbbr = 'o';
   static const String restoreAbbr = 'r';
@@ -256,15 +272,9 @@ class CommandConfig {
 
 /// Categorization configuration and defaults
 class CategorizationConfig {
-  /// Default values for categorization features
-  static const bool defaultUseGems = true;
-  static const bool defaultUpdateCache = false;
-  static const bool defaultFetchGemsFallback = false;
-  static const String defaultFirestoreProjectId = 'smartpub-vj';
-
   /// Cache configuration - uses user-level cache directory
   static const String userCacheDirectory = '.smartpub';
-  static const String cacheFileName = 'gems_cache.json';
+  static const String cacheFileName = 'category_cache.json';
   static const int cacheTtlDays = 30;
 }
 

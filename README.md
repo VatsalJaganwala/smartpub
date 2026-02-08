@@ -2,263 +2,211 @@
 
 > **The smart way to manage Flutter dependencies.**
 
+
 [![pub package](https://img.shields.io/pub/v/smartpub.svg)](https://pub.dev/packages/smartpub)
 [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-A cross-platform Dart/Flutter developer tool that analyzes and cleans dependencies in your `pubspec.yaml` file. SmartPub runs on Windows, macOS, and Linux, identifying unused, misplaced, and duplicate dependencies to keep your Flutter projects clean and efficient.
 
-## ✨ Features
 
-- 🔍 **Smart Analysis** - Scans your entire project to detect dependency usage patterns
-- 🧹 **Auto-Fix** - Automatically removes unused dependencies and fixes misplaced ones
-- 📊 **Package Categorization** - Groups dependencies by categories using FlutterGems data
-- 🤝 **Interactive Mode** - Prompts for confirmation before making changes
-- 🛡️ **Safety First** - Creates backups before modifications with easy restore
-- 📈 **Duplicate Detection** - Finds and resolves duplicate dependencies with version conflicts
-- 🎯 **Category Overrides** - Customize package categories with local overrides
+SmartPub is a CLI tool for Flutter & Dart projects that helps you **identify unused dependencies** and **organize your `pubspec.yaml`** in a clean, predictable way.
 
-## 🌐 Platform Support
+Over time, Flutter projects often accumulate unused or poorly organized packages. SmartPub makes it easy to **preview**, **clean**, and **categorize** dependencies without risking accidental changes.
 
-SmartPub works with Flutter projects targeting any platform:
+---
 
-- ✅ **Android**
-- ✅ **iOS**
-- ✅ **Web**
-- ✅ **macOS**
-- ✅ **Windows**
-- ✅ **Linux**
+## 🤔 Why SmartPub?
+
+In real Flutter projects:
+
+* Unused packages increase build time and maintenance cost
+* `pubspec.yaml` becomes hard to read as dependencies grow
+* Developers hesitate to clean dependencies due to fear of breaking the app
+
+SmartPub solves this by:
+
+* Detecting unused dependencies safely
+* Providing **preview-first** workflows
+* Offering **interactive modes** before making changes
+* Keeping actions explicit and predictable
+
+No magic. No hidden behavior.
+
+---
+
+## ✨ What SmartPub Does
+
+SmartPub focuses on **two core features only**:
+
+### 1️⃣ Unused Dependency Detection
+
+* Scans your project source code
+* Detects unused dependencies
+* Allows preview before removal
+* Supports interactive confirmation
+
+### 2️⃣ Dependency Categorization ``` (beta) ```
+#### [```Powered by FlutterGems```](https://fluttergems.dev/)
+
+* Groups dependencies into logical categories
+* Uses known ecosystem data
+* Supports preview, auto-apply, and interactive overrides
+
+---
 
 ## 🚀 Installation
 
-### Global Installation (Recommended)
+### Global installation (recommended)
 
 ```bash
 dart pub global activate smartpub
 ```
 
-### Local Installation
+Make sure Dart’s global bin is in your PATH.
 
-Add to your `pubspec.yaml`:
+---
 
-```yaml
-dev_dependencies:
-  smartpub: ^1.0.0
-```
-
-Then run:
+## 🧭 Usage Overview
 
 ```bash
-dart pub get
+smartpub [command] [options]
 ```
 
-## 📖 Usage
+If no command is provided, SmartPub runs in **preview mode**.
 
-### Basic Analysis
+---
+
+## 🔍 Commands
+
+### `check` (default)
+
+Preview unused dependencies (read-only).
 
 ```bash
-# Analyze dependencies without making changes
-smartpub --analyse
-
-# Or simply
 smartpub
+smartpub check
 ```
 
-### Auto-Fix Mode
+✔ No files are modified.
+
+---
+
+### `clean`
+
+Remove unused dependencies.
 
 ```bash
-# Automatically fix all issues
-smartpub --apply
+smartpub clean
 ```
 
-### Interactive Mode
+#### Interactive cleanup
+
+Review each removal before applying changes.
 
 ```bash
-# Review and apply changes interactively
-smartpub --interactive
+smartpub clean --interactive
 ```
 
-### Restore from Backup
+A backup of `pubspec.yaml` is created automatically.
+
+---
+
+### `group`
+
+Preview dependency categorization.
 
 ```bash
-# Restore previous version
-smartpub --restore
+smartpub group
 ```
 
-### Update SmartPub
+#### Apply categorization automatically
 
 ```bash
-# Update to the latest version
-smartpub --update
+smartpub group --apply
 ```
 
-### CI-Friendly Mode
+#### Interactive categorization
+
+Override suggested categories interactively.
 
 ```bash
-# Disable colors for CI pipelines
-smartpub --analyse --no-color
+smartpub group --interactive
 ```
 
-## 📋 Command Reference
+This is useful when you want full control over how packages are grouped.
 
+---
 
-| Command                   | Description                                 |
-| --------------------------- | --------------------------------------------- |
-| `smartpub` or `--analyse` | Analyze dependencies without making changes |
-| `--interactive`           | Review and apply changes interactively      |
-| `--apply`                 | Automatically apply fixes                   |
-| `--restore`               | Restore pubspec.yaml from backup            |
-| `--update`                | Update SmartPub to the latest version       |
-| `--no-color`              | Disable colored output                      |
-| `--help`                  | Show help information                       |
-| `--version`               | Show version information                    |
+### `restore`
 
-### 📊 Package Categorization Commands
-
-| Command                        | Description                                    |
-| -------------------------------- | ------------------------------------------------ |
-| `--group`                      | Preview dependency grouping by categories      |
-| `--group --apply`              | Apply dependency grouping to pubspec.yaml     |
-| `--group --interactive`        | Interactive grouping with category overrides  |
-| `--update-cache`               | Force update user-level category cache        |
-| `--fetch-gems-fallback`        | Enable FlutterGems fallback for missing data  |
-| `--use-gems` / `--no-use-gems` | Enable/disable FlutterGems categorization     |
-
-## 📊 Package Categorization
-
-SmartPub can automatically group your dependencies by categories using data from FlutterGems, making your `pubspec.yaml` more organized and easier to navigate.
-
-### 🚀 Quick Start
+Restore `pubspec.yaml` from the last backup.
 
 ```bash
-# Preview dependency grouping
-smartpub --group
-
-# Apply grouping to pubspec.yaml
-smartpub --group --apply
-
-# Interactive mode with category overrides
-smartpub --group --interactive
+smartpub restore
 ```
 
-### 📋 Available Categories
+---
 
-- **State Management** - BLoC, Provider, Riverpod, Redux, MobX
-- **Networking** - HTTP clients, API libraries, GraphQL
-- **Database** - SQLite, Hive, SharedPreferences, storage solutions
-- **UI Components** - Widgets, animations, image handling, charts
-- **Navigation** - Routing and navigation libraries
-- **Authentication** - Auth providers and security libraries
-- **Testing** - Test frameworks, mocking, and testing utilities
-- **Development Tools** - Code generation, linting, build tools
-- **Utilities** - Helper libraries and common utilities
+### `update`
 
-### 🎯 Category Overrides
+Update SmartPub to the latest version.
 
-Create a `group-overrides.yaml` file to customize package categories:
-
-```yaml
-# Package category overrides
-# Format: package_name: Category Name
-
-http: Custom Networking
-my_package: Custom Category
+```bash
+smartpub update
 ```
 
-### 📈 Example Output
+---
 
-```yaml
-dependencies:
-  # State Management
-  flutter_bloc: ^8.1.0
-  provider: ^6.0.0
+## ⚙️ Options
 
-  # Networking
-  dio: ^5.0.0
-  http: ^1.1.0
-
-  # UI Components
-  cached_network_image: ^3.2.0
-  flutter_svg: ^2.0.0
-
-dev_dependencies:
-  # Testing
-  flutter_test:
-    sdk: flutter
-  mockito: ^5.4.0
-
-  # Development Tools
-  build_runner: ^2.4.0
-  json_serializable: ^6.7.0
+```text
+--apply          Apply changes automatically
+--interactive    Review and confirm changes interactively
+--no-color       Disable colored output (CI-friendly)
+-h, --help       Show help information
+-v, --version    Show version information
 ```
 
-*Package categories courtesy of FlutterGems (used with permission).*
+---
 
-## 🎯 What SmartPub Detects
+## 🧪 Typical Workflow
 
-### ✅ Used Dependencies
+A safe and recommended workflow:
 
-Dependencies that are properly used in your `lib/` directory.
-
-### 🧩 Misplaced Dependencies
-
-Dependencies used only in `test/`, `bin/`, or `tool/` that should be in `dev_dependencies`.
-
-### ⚠️ Unused Dependencies
-
-Dependencies declared but never imported in your code.
-
-### 🔄 Duplicate Dependencies
-
-Packages declared in both `dependencies` and `dev_dependencies` with intelligent recommendations.
-
-## 📊 Example Output
-
-```
-📦 SmartPub - Flutter Dependency Analyzer
-
-✅ Used Dependencies
-✅ http - used in lib
-✅ flutter_bloc - used in lib
-
-🧩 Move to dev_dependencies
-🧩 mockito - used in test
-
-⚠️ Unused Dependencies
-⚠️ lottie - unused
-
-Summary
-Total dependencies scanned: 12
-⚠️ 2 issue(s) found that can be fixed
+```bash
+smartpub            # preview unused dependencies
+smartpub clean      # remove unused dependencies
+smartpub group      # preview categorization
+smartpub group --interactive
 ```
 
-## 🛡️ Safety Features
+This keeps changes intentional and reviewable.
 
-- **Automatic Backups** - Creates `pubspec.yaml.bak` before any modifications
-- **Easy Restore** - Restore previous version with `--restore` command
-- **Error Recovery** - Automatically restores backup if operations fail
+---
 
-## 🔧 CI/CD Integration
+## 🛡️ Safety Guarantees
 
-Use SmartPub in your CI pipeline across different platforms:
+* SmartPub **never modifies files without intent**
+* Preview is the default behavior
+* Backups are created before changes
+* Interactive mode is available for sensitive operations
 
-```yaml
-# GitHub Actions example (works on ubuntu, windows, macos)
-- name: Check dependencies
-  run: |
-    dart pub global activate smartpub
-    smartpub --analyse --no-color
-```
+---
 
-## 🤝 Contributing
+## 📦 Project Scope (Important)
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+SmartPub intentionally does **not**:
 
-## 📄 License
+* Modify versions automatically
+* Upgrade or downgrade dependencies
+* Guess architectural intent
 
-This project is licensed under the BSD-3-Clause License - see the [LICENSE](LICENSE) file for details.
+Its goal is **clarity and cleanliness**, not automation overload.
+
+---
 
 ## 📞 Support
 
+- 🐛 [GitHub](https://github.com/VatsalJaganwala/smartpub)
 - 🐛 [Report Issues](https://github.com/VatsalJaganwala/smartpub/issues)
 - 💡 [Feature Requests](https://github.com/VatsalJaganwala/smartpub/issues)
 

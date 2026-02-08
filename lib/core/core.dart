@@ -7,3 +7,4 @@ library;
 export 'analyzer.dart';
 export 'config.dart';
 export 'models/dependency_info.dart';
+export 'strings.dart';

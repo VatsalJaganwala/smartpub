@@ -1,6 +1,6 @@
 name: smartpub
 description: Smart Flutter dependency analyzer that cleans and organizes pubspec.yaml by detecting unused, misplaced, and duplicate dependencies.
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/VatsalJaganwala/smartpub
 repository: https://github.com/VatsalJaganwala/smartpub
 issue_tracker: https://github.com/VatsalJaganwala/smartpub/issues
@@ -19,33 +19,19 @@ dependencies:
   # File, Folder & Path Utilities
   path: ^1.8.3
 
-  # HTML, CSS & SASS
-  html: ^0.15.4
-
   # HTTP Client & Utilities
   http: ^1.1.2
 
+  # WebSocket & RPC
+
   # XML, YAML & Interchange Formats
   yaml: ^3.1.2
-  # Color Picker & Utilities
-  # Command Line (CLI) or Console
-  # File, Folder & Path Utilities
-  # HTML, CSS & SASS
-  # HTTP Client & Utilities
-  # XML, YAML & Interchange Formats
-  # Networking
-  # HTML Parsing
-  # Utilities
 dev_dependencies:
   # Testing
   test: ^1.24.9
 
   # Linter
   flutter_lints: ^6.0.0
-  # Testing
-  # Linter
-  # Testing
-  # Development Tools
 executables:
   smartpub: smartpub
 

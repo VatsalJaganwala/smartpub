@@ -8,7 +8,10 @@ import 'dart:io';
 import 'package:yaml/yaml.dart';
 import '../core/config.dart';
 import '../core/models/dependency_info.dart';
-import '../categorization/gems_integration.dart';
+import 'gems_integration.dart';
+import 'models/grouped_dependencies.dart';
+
+export 'models/grouped_dependencies.dart' show GroupedDependencies;
 
 /// Service for grouping dependencies by categories
 class GroupingService {
@@ -37,7 +40,6 @@ class GroupingService {
       if (groupOverrides != null && groupOverrides!.containsKey(dep.name)) {
         category = groupOverrides![dep.name]!;
       } else {
-        // Use gems integration to classify
         category = await gemsIntegration.classifyPackage(dep.name);
       }
 
@@ -77,7 +79,6 @@ class GroupingService {
     final lines = originalContent.split('\n');
 
     // Find dependency sections
-    final dependenciesSection = _findSection(lines, 'dependencies');
     final devDependenciesSection = _findSection(lines, 'dev_dependencies');
 
     // Replace dev_dependencies section first (to avoid index shifting issues)
@@ -154,17 +155,11 @@ class GroupingService {
     GroupedDependencies grouped,
     String sectionName,
   ) {
-    // Remove existing dependency lines (keep section header)
-    final linesToRemove = <int>[];
+    // Remove ALL existing content in the section (dependencies, comments, empty lines)
+    final List<int> linesToRemove = <int>[];
     for (int i = section.startIndex + 1; i <= section.endIndex; i++) {
       if (i < lines.length) {
-        final line = lines[i];
-        // Only remove lines that are dependencies or empty lines within the section
-        if (line.trim().isEmpty ||
-            (line.startsWith('  ') && !line.trim().startsWith('#')) ||
-            (line.startsWith('\t') && !line.trim().startsWith('#'))) {
-          linesToRemove.add(i);
-        }
+        linesToRemove.add(i);
       }
     }
 
@@ -176,14 +171,14 @@ class GroupingService {
     // Add grouped dependencies
     int insertIndex = section.startIndex + 1;
 
-    for (final category in grouped.categoryOrder) {
-      final deps = grouped.grouped[category]!;
+    for (final String category in grouped.categoryOrder) {
+      final List<DependencyInfo> deps = grouped.grouped[category]!;
       if (deps.isEmpty) continue;
 
       // Add category comment header
       lines.insert(insertIndex++, '  # $category');
 
-      for (final dep in deps) {
+      for (final DependencyInfo dep in deps) {
         lines.insert(insertIndex++, '  ${dep.name}: ${dep.version}');
       }
 
@@ -270,27 +265,6 @@ class GroupingService {
     // If neither is in the priority list, sort alphabetically
     return a.compareTo(b);
   }
-}
-
-/// Grouped dependencies data structure
-class GroupedDependencies {
-  GroupedDependencies({
-    required this.grouped,
-    required this.categoryOrder,
-  });
-
-  /// Dependencies grouped by category
-  final Map<String, List<DependencyInfo>> grouped;
-
-  /// Order of categories
-  final List<String> categoryOrder;
-
-  /// Get total number of packages
-  int get totalPackages => grouped.values
-      .fold(0, (int sum, List<DependencyInfo> deps) => sum + deps.length);
-
-  /// Get number of categories
-  int get categoryCount => grouped.length;
 }
 
 /// Section information for pubspec parsing

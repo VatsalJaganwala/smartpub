@@ -1,41 +1,82 @@
-# Changelog
+# 📄 Changelog
+---
 
-All notable changes to SmartPub will be documented in this file.
+## [1.0.2] – 2025-02-08
 
-## [1.1.0] - 2025-12-07
+### ✨ What’s New
 
-### Added
+* New **simplified CLI commands**: `check`, `clean`, `group`, `restore`, `update`
+* **Preview-first workflows** for both unused dependency detection and categorization
+* **Interactive categorization** with clearer prompts and progress indicators
+* Visual confirmation when keeping suggested categories during interactive grouping
 
-- 📊 **Package Categorization** - Automatically group dependencies by categories using FlutterGems data
-- 🎯 **Category Overrides** - Customize package categories with local `group-overrides.yaml` file
-- 🔄 **Smart Caching** - Local cache with Firestore fallback for fast categorization
-- 🤝 **Interactive Grouping** - Interactive mode for category customization
-- 🛡️ **Safe Grouping** - Automatic backup creation before applying grouping changes
-- 📈 **Multiple Data Sources** - FlutterGems integration with heuristic fallbacks
-- 🎨 **Organized Output** - Clean category headers and alphabetical sorting within categories
+### 🔄 What Changed
 
-*Package categories courtesy of FlutterGems (used with permission).*
-
-## [1.0.1] - 2025-10-20
-
-### Changed
-
-- 🔧 **Improved Dev Dependencies Handling** - Dev dependencies are no longer flagged as unused, allowing for more flexible development tooling
-- 🎯 **Smarter Dependency Analysis** - Only suggests moving dev dependencies to main dependencies when they're used in `lib/` or `bin/` directories
-- 📈 **Better User Experience** - Reduces noise by not flagging legitimate unused dev dependencies (build tools, linters, etc.)
+* `check` is now the **default command** when no arguments are provided
+* Categorization is faster and more reliable with automatic caching
+* Help output is clearer and easier to understand for new users
 
 
-## [1.0.0] - 2025-10-18
+### 🚀 Improvements
 
-### Added
+* Faster categorization performance
+* Clearer error messages for invalid command usage
+* Safer workflows with restore guidance after changes
 
-- 🔍 **Smart Dependency Analysis** - Comprehensive scanning of Dart files to detect dependency usage patterns
-- 🧹 **Auto-Fix Mode** - Automatically removes unused dependencies and fixes misplaced ones
-- 🤝 **Interactive Mode** - Prompts for user confirmation before making changes
-- 🛡️ **Safety Backup System** - Creates automatic backups before modifications with easy restore
-- 📊 **Duplicate Detection** - Identifies and resolves duplicate dependencies with version conflict detection
-- 🌐 **Universal Platform Support** - Works with Flutter projects targeting Android, iOS, Web, macOS, Windows, and Linux
+---
 
-### Stable Release
+## [1.1.0] – 2025-12-07
 
-This is the stable release of SmartPub, providing a complete solution for Flutter/Dart dependency management and cleanup. Works with Flutter projects targeting any platform.
+### ✨ What’s New
+
+* **Dependency categorization** to organize `pubspec.yaml` by logical categories
+* **Interactive grouping mode** to override suggested categories
+* Support for **local category overrides** via `group-overrides.yaml`
+* Automatic backup before applying grouping changes
+
+---
+
+## [1.0.1] – 2025-10-20
+
+### 🔄 Improvements
+
+* Dev dependencies are no longer incorrectly flagged as unused
+* Smarter detection of when dependencies should move between sections
+* Reduced false positives for build tools and linters
+
+---
+
+## [1.0.0] – 2025-10-18
+
+### 🎉 Initial Release
+
+* Detect unused dependencies in Flutter and Dart projects
+* Automatically remove unused and misplaced dependencies
+* Interactive cleanup mode with confirmations
+* Automatic backup and restore support
+* Works across all Flutter platforms
+
+---
+
+### Notes
+
+* SmartPub always defaults to **preview mode** before making changes
+* Backups are created automatically for safe cleanup and grouping
+
+---
+
+## ✅ Why this version is better
+
+* ❌ No internal filenames, APIs, or architecture details
+* ❌ No implementation trivia
+* ✅ Clear impact for users
+* ✅ Easy to skim
+* ✅ Matches your new **user-friendly CLI philosophy**
+
+If you want, I can also:
+
+* Split this into **Keep a Changelog–compliant** format
+* Add **upgrade notes** between breaking versions
+* Align this perfectly with **pub.dev best practices**
+
+You’re making the right call here — clarity beats completeness every time 👌
