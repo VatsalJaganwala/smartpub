@@ -47,7 +47,7 @@ class InteractiveGroupingService {
       if (input.toLowerCase() == 'y') {
         // 'y' pressed → keep suggested category
         continue;
-      } 
+      }
       if (input.isEmpty) {
         // Enter pressed → keep suggested category
         continue;

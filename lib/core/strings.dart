@@ -57,7 +57,8 @@ class Strings {
 
   // Warnings and Disclaimers
   static const String betaWarning = '⚠️  Beta: Use --restore if issues occur';
-  static const String flutterGemsCredit = '📦 Categories powered by FlutterGems';
+  static const String flutterGemsCredit =
+      '📦 Categories powered by FlutterGems';
 
   // Backup Messages
   static const String backupCreated = '💾 Backup created: pubspec.yaml.bak';
@@ -95,8 +96,7 @@ class Strings {
   // Progress Messages
   static String packagesInCategories(int packages, int categories) =>
       '📈 $packages packages in $categories categories';
-  static String progressCounter(int current, int total) =>
-      '[$current/$total]';
+  static String progressCounter(int current, int total) => '[$current/$total]';
 
   // Telemetry Messages
   static const String telemetryEnabled = '📊 Anonymous usage data collected';

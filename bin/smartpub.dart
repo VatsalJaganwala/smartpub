@@ -95,10 +95,13 @@ class SmartPubCLI {
   /// Build argument parser
   ArgParser _buildParser() {
     return ArgParser()
-      ..addFlag('help', abbr: 'h', help: 'Show help information', negatable: false)
-      ..addFlag('version', abbr: 'v', help: 'Show version information', negatable: false)
+      ..addFlag('help',
+          abbr: 'h', help: 'Show help information', negatable: false)
+      ..addFlag('version',
+          abbr: 'v', help: 'Show version information', negatable: false)
       ..addFlag('apply', help: 'Apply changes automatically', negatable: false)
-      ..addFlag('interactive', help: 'Review and confirm changes interactively', negatable: false)
+      ..addFlag('interactive',
+          help: 'Review and confirm changes interactively', negatable: false)
       ..addFlag('no-color', help: 'Disable colored output', negatable: false);
   }
 
@@ -107,7 +110,8 @@ class SmartPubCLI {
     // --apply and --interactive cannot be used together
     if (apply && interactive) {
       _output.printError('❌ Cannot use --apply and --interactive together');
-      print('   Choose one: auto mode (--apply) or interactive mode (--interactive)');
+      print(
+          '   Choose one: auto mode (--apply) or interactive mode (--interactive)');
       exit(ExitCodes.invalidArguments);
     }
 
@@ -134,7 +138,8 @@ class SmartPubCLI {
   }
 
   /// Handle the command
-  Future<void> _handleCommand(String command, bool apply, bool interactive) async {
+  Future<void> _handleCommand(
+      String command, bool apply, bool interactive) async {
     print(Strings.appTitle);
     print('');
 
@@ -186,8 +191,8 @@ class SmartPubCLI {
   void _printUpdateNotification(String version) {
     final String message = '🆕 Update available: $version';
     final String instruction = 'Run: smartpub update';
-    final int maxLength = message.length > instruction.length 
-        ? message.length 
+    final int maxLength = message.length > instruction.length
+        ? message.length
         : instruction.length;
     final String border = '═' * (maxLength + 2);
 
@@ -209,7 +214,8 @@ class SmartPubCLI {
   /// Print what the command will do
   void _printIntent(String command, bool apply, bool interactive) {
     if (command == 'check') {
-      _output.printInfo('🔍 Previewing unused dependencies (no changes will be made)');
+      _output.printInfo(
+          '🔍 Previewing unused dependencies (no changes will be made)');
     } else if (command == 'clean') {
       if (interactive) {
         _output.printInfo('🤝 Interactive cleanup mode');
@@ -239,7 +245,8 @@ class SmartPubCLI {
 
     print('');
     _output.printInfo('💡 To remove unused dependencies: smartpub clean');
-    _output.printInfo('💡 To review changes first: smartpub clean --interactive');
+    _output
+        .printInfo('💡 To review changes first: smartpub clean --interactive');
   }
 
   /// Handle 'clean' command - remove unused dependencies
@@ -288,10 +295,12 @@ class SmartPubCLI {
 
     // Separate dependencies by section
     final List<DependencyInfo> deps = result.dependencies
-        .where((DependencyInfo d) => d.section == DependencySection.dependencies)
+        .where(
+            (DependencyInfo d) => d.section == DependencySection.dependencies)
         .toList();
     final List<DependencyInfo> devDeps = result.dependencies
-        .where((DependencyInfo d) => d.section == DependencySection.devDependencies)
+        .where((DependencyInfo d) =>
+            d.section == DependencySection.devDependencies)
         .toList();
 
     // Group dependencies
@@ -325,7 +334,8 @@ class SmartPubCLI {
     } else {
       // Preview only
       _output.printInfo('💡 To apply: smartpub group --apply');
-      _output.printInfo('💡 To customize categories: smartpub group --interactive');
+      _output.printInfo(
+          '💡 To customize categories: smartpub group --interactive');
       print('');
       _output.printInfo(Strings.flutterGemsCredit);
     }
@@ -347,7 +357,8 @@ class SmartPubCLI {
     }
 
     try {
-      final String content = await service.generateGroupedPubspec(deps, devDeps);
+      final String content =
+          await service.generateGroupedPubspec(deps, devDeps);
       await File(FileConfig.pubspecFile).writeAsString(content);
 
       _output
@@ -374,8 +385,7 @@ class SmartPubCLI {
     );
 
     if (shouldOverride) {
-      final InteractiveGroupingService interactive =
-          InteractiveGroupingService(
+      final InteractiveGroupingService interactive = InteractiveGroupingService(
         gemsIntegration: service.gemsIntegration,
       );
 
