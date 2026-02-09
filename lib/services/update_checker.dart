@@ -45,7 +45,8 @@ class UpdateChecker {
           lastChecked: DateTime.now(),
         );
       }
-      bool _isNewerVersion(String v1, String v2) => Version.parse(v1) > Version.parse(v2);
+      bool _isNewerVersion(String v1, String v2) =>
+          Version.parse(v1) > Version.parse(v2);
       // Compare versions
       final hasUpdate = _isNewerVersion(latestVersion, AppConfig.version);
       final updateInfo = UpdateInfo(
@@ -93,6 +94,7 @@ class UpdateChecker {
       return null;
     }
   }
+
   /// Get cached update information
   static Future<UpdateInfo?> _getCachedUpdateInfo() async {
     try {

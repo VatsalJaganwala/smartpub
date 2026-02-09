@@ -24,7 +24,7 @@ import 'package:smartpub/ui/interactive_service.dart';
 
 void main(List<String> arguments) async {
   await AppConfig.initialize();
-  
+
   final SmartPubCLI cli = SmartPubCLI();
   await cli.run(arguments);
 }
@@ -448,7 +448,8 @@ class SmartPubCLI {
     }
 
     // Check for updates
-    final UpdateInfo? updateInfo = await UpdateChecker.checkForUpdates(useCache: false);
+    final UpdateInfo? updateInfo =
+        await UpdateChecker.checkForUpdates(useCache: false);
 
     if (!(updateInfo?.hasUpdate ?? true)) {
       _output.printInfo(Strings.upToDate);
