@@ -4,40 +4,60 @@
 
 This directory contains examples of how to use SmartPub in different scenarios.
 
-## Basic Usage
+---
 
-### 1. Analyze Dependencies
+## 🚀 Quick Start
+
+### 1. Check for Unused Dependencies (Preview)
 
 ```bash
-# Basic analysis
-smartpub --analyse
-
-# Or simply
+# Preview unused dependencies (default command)
 smartpub
+smartpub check
 ```
 
-### 2. Auto-Fix Issues
+✔ No files are modified.
+
+### 2. Clean Up Unused Dependencies
 
 ```bash
-# Automatically fix all detected issues
-smartpub --apply
+# Remove unused dependencies
+smartpub clean
+
+# Interactive cleanup (review each change)
+smartpub clean --interactive
 ```
 
-### 3. Interactive Mode
+### 3. Organize Dependencies by Category
 
 ```bash
-# Review and apply changes interactively
-smartpub --interactive
+# Preview categorization
+smartpub group
+
+# Apply categorization automatically
+smartpub group --apply
+
+# Interactive categorization (override suggestions)
+smartpub group --interactive
 ```
 
 ### 4. Restore from Backup
 
 ```bash
 # Restore previous version
-smartpub --restore
+smartpub restore
 ```
 
-## Example Scenarios
+### 5. Update SmartPub
+
+```bash
+# Update to latest version
+smartpub update
+```
+
+---
+
+## 📋 Example Scenarios
 
 ### Scenario 1: Clean Up Unused Dependencies
 
@@ -56,7 +76,7 @@ dev_dependencies:
 
 **Command:**
 ```bash
-smartpub --apply
+smartpub clean
 ```
 
 **After:**
@@ -68,6 +88,8 @@ dependencies:
 dev_dependencies:
   test: ^1.24.9
 ```
+
+---
 
 ### Scenario 2: Fix Misplaced Dependencies
 
@@ -84,7 +106,7 @@ dev_dependencies:
 
 **Command:**
 ```bash
-smartpub --apply
+smartpub clean
 ```
 
 **After:**
@@ -97,6 +119,8 @@ dev_dependencies:
   mockito: ^5.4.4
   build_runner: ^2.4.7
 ```
+
+---
 
 ### Scenario 3: Resolve Duplicate Dependencies
 
@@ -113,7 +137,7 @@ dev_dependencies:
 
 **Command:**
 ```bash
-smartpub --apply
+smartpub clean
 ```
 
 **After:**
@@ -126,7 +150,76 @@ dev_dependencies:
   test: ^1.24.9
 ```
 
-## CI/CD Integration
+---
+
+### Scenario 4: Organize Dependencies by Category
+
+**Before:**
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0
+  provider: ^6.0.0
+  shared_preferences: ^2.2.0
+  flutter_svg: ^2.0.0
+  intl: ^0.18.0
+  dio: ^5.0.0
+```
+
+**Command:**
+```bash
+smartpub group --apply
+```
+
+**After:**
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.0.0
+
+  # Networking
+  http: ^1.1.0
+  dio: ^5.0.0
+
+  # Storage
+  shared_preferences: ^2.2.0
+
+  # UI Components
+  flutter_svg: ^2.0.0
+
+  # Localization
+  intl: ^0.18.0
+```
+
+---
+
+## 🔄 Typical Workflow
+
+A safe and recommended workflow:
+
+```bash
+# Step 1: Preview unused dependencies
+smartpub
+
+# Step 2: Remove unused dependencies
+smartpub clean
+
+# Step 3: Preview categorization
+smartpub group
+
+# Step 4: Apply categorization with interactive mode
+smartpub group --interactive
+```
+
+This keeps changes intentional and reviewable.
+
+---
+
+## 🤖 CI/CD Integration
 
 ### GitHub Actions
 
@@ -145,7 +238,7 @@ jobs:
         run: dart pub global activate smartpub
         
       - name: Check dependencies
-        run: smartpub --analyse --no-color
+        run: smartpub check --no-color
 ```
 
 ### GitLab CI
@@ -156,13 +249,72 @@ check_dependencies:
   image: dart:stable
   script:
     - dart pub global activate smartpub
-    - smartpub --analyse --no-color
+    - smartpub check --no-color
   only:
     - merge_requests
     - main
 ```
 
-## Complex Dependencies
+---
+
+## 🎯 Interactive Mode Examples
+
+### Interactive Cleanup
+
+```bash
+smartpub clean --interactive
+```
+
+**Output:**
+```
+📦 SmartPub - Dependency Analyzer
+
+✓ Analysis complete
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 Summary:
+  • Total dependencies: 8
+  • Unused: 2
+  • Misplaced: 1
+  • Duplicates: 0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Remove 'dio' (unused)? (y/n): y
+Remove 'lottie' (unused)? (y/n): y
+Move 'mockito' to dev_dependencies? (y/n): y
+
+✓ Changes applied successfully
+```
+
+### Interactive Categorization
+
+```bash
+smartpub group --interactive
+```
+
+**Output:**
+```
+📦 Package: http
+Suggested category: Networking
+Keep this category? (y/n): y
+
+📦 Package: provider
+Suggested category: State Management
+Keep this category? (y/n): y
+
+📦 Package: custom_package
+Suggested category: Utilities
+Keep this category? (y/n): n
+Enter custom category: Custom Logic
+
+✓ Categorization complete
+```
+
+---
+
+## 🛠️ Complex Dependencies
 
 SmartPub handles all types of dependencies:
 
@@ -195,3 +347,36 @@ dev_dependencies:
 ```
 
 All of these will be properly analyzed and maintained by SmartPub while preserving their exact structure and formatting.
+
+---
+
+## 🎨 Category Override Example
+
+Create a `group-overrides.yaml` file in your project root:
+
+```yaml
+# Custom category overrides
+my_custom_package: Custom Logic
+internal_utils: Internal Tools
+company_sdk: Company SDKs
+```
+
+Then run:
+
+```bash
+smartpub group --apply
+```
+
+Your custom categories will be used instead of the suggested ones.
+
+---
+
+## 📞 Need Help?
+
+- 🐛 [Report Issues](https://github.com/VatsalJaganwala/smartpub/issues)
+- 💡 [Feature Requests](https://github.com/VatsalJaganwala/smartpub/issues)
+- 📖 [Full Documentation](https://github.com/VatsalJaganwala/smartpub)
+
+---
+
+**Made with ❤️ by [Vatsal Jaganwala](https://github.com/VatsalJaganwala)**

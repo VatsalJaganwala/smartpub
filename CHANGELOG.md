@@ -1,6 +1,18 @@
 # 📄 Changelog
 ---
 
+## [1.0.4] – 2026-02-09
+
+### 📚 Documentation
+
+* Updated example documentation with comprehensive usage scenarios
+* Added interactive mode examples with sample outputs
+* Included category override examples with `group-overrides.yaml`
+* Updated CI/CD integration examples to use new command syntax
+* Improved quick start guide with all available commands
+
+---
+
 ## [1.0.3] – 2026-02-09
 
 ### 🐛 Bug Fixes
