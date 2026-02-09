@@ -1,7 +1,22 @@
 # 📄 Changelog
 ---
 
-## [1.0.2] – 2025-02-08
+## [1.0.3] – 2026-02-09
+
+### 🐛 Bug Fixes
+
+* Fixed "Category not found" error causing app crashes when API returns error responses
+* Improved null safety across all JSON parsing operations
+* Enhanced error handling to gracefully handle malformed API responses and missing data fields
+
+### 🔄 Improvements
+
+* Better resilience when categorization API is unavailable or returns unexpected data
+* Application continues execution with safe defaults instead of crashing on data errors
+
+---
+
+## [1.0.2] – 2026-02-08
 
 ### ✨ What’s New
 
@@ -22,17 +37,6 @@
 * Faster categorization performance
 * Clearer error messages for invalid command usage
 * Safer workflows with restore guidance after changes
-
----
-
-## [1.1.0] – 2025-12-07
-
-### ✨ What’s New
-
-* **Dependency categorization** to organize `pubspec.yaml` by logical categories
-* **Interactive grouping mode** to override suggested categories
-* Support for **local category overrides** via `group-overrides.yaml`
-* Automatic backup before applying grouping changes
 
 ---
 
@@ -57,26 +61,3 @@
 * Works across all Flutter platforms
 
 ---
-
-### Notes
-
-* SmartPub always defaults to **preview mode** before making changes
-* Backups are created automatically for safe cleanup and grouping
-
----
-
-## ✅ Why this version is better
-
-* ❌ No internal filenames, APIs, or architecture details
-* ❌ No implementation trivia
-* ✅ Clear impact for users
-* ✅ Easy to skim
-* ✅ Matches your new **user-friendly CLI philosophy**
-
-If you want, I can also:
-
-* Split this into **Keep a Changelog–compliant** format
-* Add **upgrade notes** between breaking versions
-* Align this perfectly with **pub.dev best practices**
-
-You’re making the right call here — clarity beats completeness every time 👌

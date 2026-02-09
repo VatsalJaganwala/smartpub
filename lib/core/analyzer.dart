@@ -24,7 +24,9 @@ class DependencyAnalyzer {
 
     // Parse pubspec.yaml
     final String pubspecContent = await pubspecFile.readAsString();
-    final Map pubspec = loadYaml(pubspecContent) as Map;
+    final Map pubspec = Map<dynamic, dynamic>.from(
+      loadYaml(pubspecContent) ?? <dynamic, dynamic>{}
+    );
 
     // Extract dependencies
     final Map<String, dynamic> dependencies = _extractDependencies(pubspec);
@@ -87,15 +89,15 @@ class DependencyAnalyzer {
 
   /// Extract dependencies from pubspec
   Map<String, dynamic> _extractDependencies(Map pubspec) {
-    final deps = pubspec[AnalysisConfig.dependenciesSection];
-    if (deps == null) return <String, dynamic>{};
+    final dynamic deps = pubspec[AnalysisConfig.dependenciesSection];
+    if (deps == null || deps is! Map) return <String, dynamic>{};
     return Map<String, dynamic>.from(deps);
   }
 
   /// Extract dev dependencies from pubspec
   Map<String, dynamic> _extractDevDependencies(Map pubspec) {
-    final deps = pubspec[AnalysisConfig.devDependenciesSection];
-    if (deps == null) return <String, dynamic>{};
+    final dynamic deps = pubspec[AnalysisConfig.devDependenciesSection];
+    if (deps == null || deps is! Map) return <String, dynamic>{};
     return Map<String, dynamic>.from(deps);
   }
 

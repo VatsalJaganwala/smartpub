@@ -43,18 +43,18 @@ class SmartPubCLI {
       final ArgResults args = parser.parse(arguments);
 
       // Handle system commands first (these run alone)
-      if (args['help'] as bool) {
+      if (args['help'] == true) {
         _printHelp();
         return;
       }
 
-      if (args['version'] as bool) {
+      if (args['version'] == true) {
         _printVersion();
         return;
       }
 
       // Disable colors if requested
-      if (args['no-color'] as bool) {
+      if (args['no-color'] == true) {
         _output = CLIOutput(noColor: true);
       }
 
@@ -73,8 +73,8 @@ class SmartPubCLI {
       }
 
       // Get options
-      final bool apply = args['apply'] as bool;
-      final bool interactive = args['interactive'] as bool;
+      final bool apply = args['apply'] == true;
+      final bool interactive = args['interactive'] == true;
 
       // Validate command + option combinations
       _validateUsage(command, apply, interactive);

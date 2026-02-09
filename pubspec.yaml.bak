@@ -20,11 +20,9 @@ dependencies:
   path: ^1.8.3
 
   # HTTP Client & Utilities
-  dio: ^5.9.1
   http: ^1.1.2
 
   # WebSocket & RPC
-  socket_io: ^1.0.1
 
   # XML, YAML & Interchange Formats
   yaml: ^3.1.2

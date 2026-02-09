@@ -20,32 +20,35 @@ class ApiService {
   Future<List<PackageCategory>> fetchPackages(
     List<String> packageNames,
   ) async {
-    if (packageNames.isEmpty) return [];
+    if (packageNames.isEmpty) return <PackageCategory>[];
 
     try {
-      final packagesParam = packageNames.join(',');
-      final url = '$baseUrl/category?packages=$packagesParam';
+      final String packagesParam = packageNames.join(',');
+      final String url = '$baseUrl/category?packages=$packagesParam';
 
-      final response = await http.get(Uri.parse(url));
+      final http.Response response = await http.get(Uri.parse(url));
 
-      if (response.statusCode != 200) return [];
+      if (response.statusCode != 200) return <PackageCategory>[];
 
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final packages = json['packages'] as List<dynamic>?;
-
-      if (packages == null) return [];
+      final Map<String, dynamic> json = Map<String, dynamic>.from(
+        jsonDecode(response.body) ?? <String, dynamic>{}
+      );
+      
+      final List<dynamic> packages = List<dynamic>.from(json['packages'] ?? <dynamic>[]);
 
       return packages
-          .map((p) => PackageCategory.fromJson(p as Map<String, dynamic>))
+          .where((dynamic p) => p is Map)
+          .map((dynamic p) => PackageCategory.fromJson(
+                Map<String, dynamic>.from(p as Map? ?? <String, dynamic>{})))
           .toList();
-    } on Exception {
-      return [];
+    } catch (e) {
+      return <PackageCategory>[];
     }
   }
 
   /// Fetch category for a single package
   Future<PackageCategory?> fetchPackage(String packageName) async {
-    final results = await fetchPackages([packageName]);
+    final List<PackageCategory> results = await fetchPackages(<String>[packageName]);
     return results.isEmpty ? null : results.first;
   }
 }

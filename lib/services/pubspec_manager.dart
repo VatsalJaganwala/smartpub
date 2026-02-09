@@ -13,14 +13,16 @@ import '../core/config.dart';
 class PubspecManager {
   /// Read and parse pubspec.yaml file
   static Future<PubspecData> readPubspec() async {
-    final file = File(FileConfig.pubspecFile);
+    final File file = File(FileConfig.pubspecFile);
 
     if (!file.existsSync()) {
       throw Exception('${FileConfig.pubspecFile} not found');
     }
 
-    final content = await file.readAsString();
-    final yaml = loadYaml(content) as Map;
+    final String content = await file.readAsString();
+    final Map yaml = Map<dynamic, dynamic>.from(
+      loadYaml(content) ?? <dynamic, dynamic>{}
+    );
 
     return PubspecData(
       originalContent: content,

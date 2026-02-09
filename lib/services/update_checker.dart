@@ -74,16 +74,20 @@ class UpdateChecker {
   /// Fetch the latest version from pub.dev API
   static Future<String?> _fetchLatestVersion() async {
     try {
-      final response = await http
+      final http.Response response = await http
           .get(
             Uri.parse(_pubDevApiUrl),
           )
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
-        final jsonData = jsonDecode(response.body) as Map<String, dynamic>;
-        final latest = jsonData['latest'] as Map<String, dynamic>?;
-        return latest?['version'] as String?;
+        final Map<String, dynamic> jsonData = Map<String, dynamic>.from(
+          jsonDecode(response.body) ?? <String, dynamic>{}
+        );
+        final Map<String, dynamic> latest = Map<String, dynamic>.from(
+          jsonData['latest'] ?? <String, dynamic>{}
+        );
+        return latest['version']?.toString();
       }
 
       return null;
@@ -126,11 +130,13 @@ class UpdateChecker {
   /// Get cached update information
   static Future<UpdateInfo?> _getCachedUpdateInfo() async {
     try {
-      final cacheFile = await _getCacheFile();
+      final File cacheFile = await _getCacheFile();
       if (!cacheFile.existsSync()) return null;
 
-      final content = await cacheFile.readAsString();
-      final jsonData = jsonDecode(content) as Map<String, dynamic>;
+      final String content = await cacheFile.readAsString();
+      final Map<String, dynamic> jsonData = Map<String, dynamic>.from(
+        jsonDecode(content) ?? <String, dynamic>{}
+      );
 
       return UpdateInfo.fromJson(jsonData);
     } catch (e) {
@@ -228,13 +234,33 @@ class UpdateInfo {
   });
 
   /// Create UpdateInfo from JSON
-  factory UpdateInfo.fromJson(Map<String, dynamic> json) => UpdateInfo(
-        currentVersion: json['currentVersion'] as String,
-        latestVersion: json['latestVersion'] as String,
-        hasUpdate: json['hasUpdate'] as bool,
-        lastChecked: DateTime.parse(json['lastChecked'] as String),
-        error: json['error'] as String?,
+  factory UpdateInfo.fromJson(Map<String, dynamic> json) {
+    try {
+      final currentVersion = json['currentVersion']?.toString() ?? AppConfig.version;
+      final latestVersion = json['latestVersion']?.toString() ?? AppConfig.version;
+      final hasUpdate = json['hasUpdate'] == true;
+      final lastCheckedStr = json['lastChecked']?.toString();
+      final error = json['error']?.toString();
+
+      return UpdateInfo(
+        currentVersion: currentVersion,
+        latestVersion: latestVersion,
+        hasUpdate: hasUpdate,
+        lastChecked: lastCheckedStr != null
+            ? DateTime.tryParse(lastCheckedStr) ?? DateTime.now()
+            : DateTime.now(),
+        error: error,
       );
+    } catch (e) {
+      return UpdateInfo(
+        currentVersion: AppConfig.version,
+        latestVersion: AppConfig.version,
+        hasUpdate: false,
+        lastChecked: DateTime.now(),
+        error: 'Failed to parse update info',
+      );
+    }
+  }
   final String currentVersion;
   final String latestVersion;
   final bool hasUpdate;

@@ -14,15 +14,37 @@ class PackageCategory {
   });
 
   /// Create from JSON
-  factory PackageCategory.fromJson(Map<String, dynamic> json) =>
-      PackageCategory(
-        name: json['name'] as String,
-        categories: (json['categories'] as List<dynamic>).cast<String>(),
-        primaryCategory: json['primaryCategory'] as String,
-        source: json['source'] as String,
-        confidence: (json['confidence'] as num).toDouble(),
-        fetchedAt: DateTime.parse(json['fetchedAt'] as String),
+  factory PackageCategory.fromJson(Map<String, dynamic> json) {
+    try {
+      final name = json['name']?.toString() ?? 'unknown';
+      final categoriesList = List<String>.from(json['categories'] ?? <String>['Other']);
+      final primaryCategory = json['primaryCategory']?.toString() ?? 'Other';
+      final source = json['source']?.toString() ?? 'error';
+      final confidence = (json['confidence'] as num?)?.toDouble() ?? 0.0;
+      final fetchedAtStr = json['fetchedAt']?.toString();
+
+      return PackageCategory(
+        name: name,
+        categories: categoriesList,
+        primaryCategory: primaryCategory,
+        source: source,
+        confidence: confidence,
+        fetchedAt: fetchedAtStr != null 
+            ? DateTime.tryParse(fetchedAtStr) ?? DateTime.now()
+            : DateTime.now(),
       );
+    } catch (e) {
+      // Return fallback on any parsing error
+      return PackageCategory(
+        name: json['name']?.toString() ?? 'unknown',
+        categories: const <String>['Other'],
+        primaryCategory: 'Other',
+        source: 'error',
+        confidence: 0.0,
+        fetchedAt: DateTime.now(),
+      );
+    }
+  }
 
   /// Package name
   final String name;

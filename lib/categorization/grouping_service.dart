@@ -287,20 +287,22 @@ class SectionInfo {
 
 /// Load group overrides from file
 Future<Map<String, String>?> loadGroupOverrides() async {
-  final file = File('group-overrides.yaml');
+  final File file = File('group-overrides.yaml');
   if (!file.existsSync()) {
     return null;
   }
 
   try {
-    final content = await file.readAsString();
-    final yaml = loadYaml(content) as Map?;
+    final String content = await file.readAsString();
+    final Map yaml = Map<dynamic, dynamic>.from(
+      loadYaml(content) ?? <dynamic, dynamic>{}
+    );
 
-    if (yaml == null) return null;
-
-    final overrides = <String, String>{};
-    for (final entry in yaml.entries) {
-      overrides[entry.key.toString()] = entry.value.toString();
+    final Map<String, String> overrides = <String, String>{};
+    for (final dynamic entry in yaml.entries) {
+      if (entry is MapEntry) {
+        overrides[entry.key.toString()] = entry.value.toString();
+      }
     }
 
     return overrides;

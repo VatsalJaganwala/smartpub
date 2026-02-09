@@ -73,24 +73,28 @@ class CacheService {
 
   /// Load cache from file
   Future<void> _loadCache() async {
-    final file = File(_cacheFilePath);
+    final File file = File(_cacheFilePath);
     if (!file.existsSync()) {
-      _cache = {};
+      _cache = <String, PackageCategory>{};
       return;
     }
 
     try {
-      final content = await file.readAsString();
-      final json = jsonDecode(content) as Map<String, dynamic>;
+      final String content = await file.readAsString();
+      final Map<String, dynamic> json = Map<String, dynamic>.from(
+        jsonDecode(content) ?? <String, dynamic>{}
+      );
 
-      _cache = {};
-      for (final entry in json.entries) {
-        _cache![entry.key] = PackageCategory.fromJson(
-          entry.value as Map<String, dynamic>,
-        );
+      _cache = <String, PackageCategory>{};
+      for (final MapEntry<String, dynamic> entry in json.entries) {
+        if (entry.value is Map) {
+          _cache![entry.key] = PackageCategory.fromJson(
+            Map<String, dynamic>.from(entry.value as Map? ?? <String, dynamic>{}),
+          );
+        }
       }
     } on Exception {
-      _cache = {};
+      _cache = <String, PackageCategory>{};
     }
   }
 
