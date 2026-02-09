@@ -17,7 +17,8 @@ class PackageCategory {
   factory PackageCategory.fromJson(Map<String, dynamic> json) {
     try {
       final name = json['name']?.toString() ?? 'unknown';
-      final categoriesList = List<String>.from(json['categories'] ?? <String>['Other']);
+      final categoriesList =
+          List<String>.from(json['categories'] ?? <String>['Other']);
       final primaryCategory = json['primaryCategory']?.toString() ?? 'Other';
       final source = json['source']?.toString() ?? 'error';
       final confidence = (json['confidence'] as num?)?.toDouble() ?? 0.0;
@@ -29,7 +30,7 @@ class PackageCategory {
         primaryCategory: primaryCategory,
         source: source,
         confidence: confidence,
-        fetchedAt: fetchedAtStr != null 
+        fetchedAt: fetchedAtStr != null
             ? DateTime.tryParse(fetchedAtStr) ?? DateTime.now()
             : DateTime.now(),
       );

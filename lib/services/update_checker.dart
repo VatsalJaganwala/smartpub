@@ -82,11 +82,9 @@ class UpdateChecker {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = Map<String, dynamic>.from(
-          jsonDecode(response.body) ?? <String, dynamic>{}
-        );
+            jsonDecode(response.body) ?? <String, dynamic>{});
         final Map<String, dynamic> latest = Map<String, dynamic>.from(
-          jsonData['latest'] ?? <String, dynamic>{}
-        );
+            jsonData['latest'] ?? <String, dynamic>{});
         return latest['version']?.toString();
       }
 
@@ -134,9 +132,8 @@ class UpdateChecker {
       if (!cacheFile.existsSync()) return null;
 
       final String content = await cacheFile.readAsString();
-      final Map<String, dynamic> jsonData = Map<String, dynamic>.from(
-        jsonDecode(content) ?? <String, dynamic>{}
-      );
+      final Map<String, dynamic> jsonData =
+          Map<String, dynamic>.from(jsonDecode(content) ?? <String, dynamic>{});
 
       return UpdateInfo.fromJson(jsonData);
     } catch (e) {
@@ -236,8 +233,10 @@ class UpdateInfo {
   /// Create UpdateInfo from JSON
   factory UpdateInfo.fromJson(Map<String, dynamic> json) {
     try {
-      final currentVersion = json['currentVersion']?.toString() ?? AppConfig.version;
-      final latestVersion = json['latestVersion']?.toString() ?? AppConfig.version;
+      final currentVersion =
+          json['currentVersion']?.toString() ?? AppConfig.version;
+      final latestVersion =
+          json['latestVersion']?.toString() ?? AppConfig.version;
       final hasUpdate = json['hasUpdate'] == true;
       final lastCheckedStr = json['lastChecked']?.toString();
       final error = json['error']?.toString();

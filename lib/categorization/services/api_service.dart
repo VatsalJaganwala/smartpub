@@ -31,15 +31,15 @@ class ApiService {
       if (response.statusCode != 200) return <PackageCategory>[];
 
       final Map<String, dynamic> json = Map<String, dynamic>.from(
-        jsonDecode(response.body) ?? <String, dynamic>{}
-      );
-      
-      final List<dynamic> packages = List<dynamic>.from(json['packages'] ?? <dynamic>[]);
+          jsonDecode(response.body) ?? <String, dynamic>{});
+
+      final List<dynamic> packages =
+          List<dynamic>.from(json['packages'] ?? <dynamic>[]);
 
       return packages
           .where((dynamic p) => p is Map)
           .map((dynamic p) => PackageCategory.fromJson(
-                Map<String, dynamic>.from(p as Map? ?? <String, dynamic>{})))
+              Map<String, dynamic>.from(p as Map? ?? <String, dynamic>{})))
           .toList();
     } catch (e) {
       return <PackageCategory>[];
@@ -48,7 +48,8 @@ class ApiService {
 
   /// Fetch category for a single package
   Future<PackageCategory?> fetchPackage(String packageName) async {
-    final List<PackageCategory> results = await fetchPackages(<String>[packageName]);
+    final List<PackageCategory> results =
+        await fetchPackages(<String>[packageName]);
     return results.isEmpty ? null : results.first;
   }
 }

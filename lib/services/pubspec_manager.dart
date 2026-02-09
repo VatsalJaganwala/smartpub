@@ -20,9 +20,8 @@ class PubspecManager {
     }
 
     final String content = await file.readAsString();
-    final Map yaml = Map<dynamic, dynamic>.from(
-      loadYaml(content) ?? <dynamic, dynamic>{}
-    );
+    final Map yaml =
+        Map<dynamic, dynamic>.from(loadYaml(content) ?? <dynamic, dynamic>{});
 
     return PubspecData(
       originalContent: content,

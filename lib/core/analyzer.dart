@@ -25,8 +25,7 @@ class DependencyAnalyzer {
     // Parse pubspec.yaml
     final String pubspecContent = await pubspecFile.readAsString();
     final Map pubspec = Map<dynamic, dynamic>.from(
-      loadYaml(pubspecContent) ?? <dynamic, dynamic>{}
-    );
+        loadYaml(pubspecContent) ?? <dynamic, dynamic>{});
 
     // Extract dependencies
     final Map<String, dynamic> dependencies = _extractDependencies(pubspec);

@@ -81,15 +81,15 @@ class CacheService {
 
     try {
       final String content = await file.readAsString();
-      final Map<String, dynamic> json = Map<String, dynamic>.from(
-        jsonDecode(content) ?? <String, dynamic>{}
-      );
+      final Map<String, dynamic> json =
+          Map<String, dynamic>.from(jsonDecode(content) ?? <String, dynamic>{});
 
       _cache = <String, PackageCategory>{};
       for (final MapEntry<String, dynamic> entry in json.entries) {
         if (entry.value is Map) {
           _cache![entry.key] = PackageCategory.fromJson(
-            Map<String, dynamic>.from(entry.value as Map? ?? <String, dynamic>{}),
+            Map<String, dynamic>.from(
+                entry.value as Map? ?? <String, dynamic>{}),
           );
         }
       }

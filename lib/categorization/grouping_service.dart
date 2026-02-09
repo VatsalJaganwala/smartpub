@@ -294,9 +294,8 @@ Future<Map<String, String>?> loadGroupOverrides() async {
 
   try {
     final String content = await file.readAsString();
-    final Map yaml = Map<dynamic, dynamic>.from(
-      loadYaml(content) ?? <dynamic, dynamic>{}
-    );
+    final Map yaml =
+        Map<dynamic, dynamic>.from(loadYaml(content) ?? <dynamic, dynamic>{});
 
     final Map<String, String> overrides = <String, String>{};
     for (final dynamic entry in yaml.entries) {
