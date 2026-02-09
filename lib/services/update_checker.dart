@@ -7,6 +7,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:path/path.dart' as path;
 import '../core/config.dart';
 
@@ -44,10 +45,9 @@ class UpdateChecker {
           lastChecked: DateTime.now(),
         );
       }
-
+      bool _isNewerVersion(String v1, String v2) => Version.parse(v1) > Version.parse(v2);
       // Compare versions
       final hasUpdate = _isNewerVersion(latestVersion, AppConfig.version);
-
       final updateInfo = UpdateInfo(
         currentVersion: AppConfig.version,
         latestVersion: latestVersion,
@@ -93,38 +93,6 @@ class UpdateChecker {
       return null;
     }
   }
-
-  /// Compare two version strings to determine if first is newer than second
-  static bool _isNewerVersion(String version1, String version2) {
-    final v1Parts = version1
-        .split('.')
-        .map(int.tryParse)
-        .where((int? v) => v != null)
-        .cast<int>()
-        .toList();
-    final v2Parts = version2
-        .split('.')
-        .map(int.tryParse)
-        .where((int? v) => v != null)
-        .cast<int>()
-        .toList();
-
-    // Pad shorter version with zeros
-    while (v1Parts.length < v2Parts.length) {
-      v1Parts.add(0);
-    }
-    while (v2Parts.length < v1Parts.length) {
-      v2Parts.add(0);
-    }
-
-    for (int i = 0; i < v1Parts.length; i++) {
-      if (v1Parts[i] > v2Parts[i]) return true;
-      if (v1Parts[i] < v2Parts[i]) return false;
-    }
-
-    return false; // Versions are equal
-  }
-
   /// Get cached update information
   static Future<UpdateInfo?> _getCachedUpdateInfo() async {
     try {

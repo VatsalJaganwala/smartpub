@@ -4,11 +4,13 @@
 /// the SmartPub application for consistency and easy localization.
 library;
 
+import 'config.dart';
+
 /// Application strings and messages
 class Strings {
   // App Info
   static const String appTitle = '📦 SmartPub - Flutter Dependency Analyzer';
-  static const String appVersion = 'SmartPub v1.0.2';
+  static String appVersion = 'SmartPub v${AppConfig.version}';
 
   // Analysis Messages
   static const String scanningDependencies = '🔍 Scanning dependencies...';
@@ -90,12 +92,15 @@ class Strings {
   // Category Override Feedback
   static String overrideApplied(String packageName, String category) =>
       '  → Override: $packageName → $category';
+
   static String keepingCategory(String category) => '  ✓ Keeping: $category';
+
   static String suggestedCategory(String category) => 'suggested: $category';
 
   // Progress Messages
   static String packagesInCategories(int packages, int categories) =>
       '📈 $packages packages in $categories categories';
+
   static String progressCounter(int current, int total) => '[$current/$total]';
 
   // Telemetry Messages

@@ -23,6 +23,8 @@ import 'package:smartpub/ui/interactive_grouping_service.dart';
 import 'package:smartpub/ui/interactive_service.dart';
 
 void main(List<String> arguments) async {
+  await AppConfig.initialize();
+  
   final SmartPubCLI cli = SmartPubCLI();
   await cli.run(arguments);
 }
@@ -446,19 +448,19 @@ class SmartPubCLI {
     }
 
     // Check for updates
-    final UpdateInfo? updateInfo = await UpdateChecker.checkForUpdates();
+    final UpdateInfo? updateInfo = await UpdateChecker.checkForUpdates(useCache: false);
 
-    if (updateInfo == null) {
+    if (!(updateInfo?.hasUpdate ?? true)) {
       _output.printInfo(Strings.upToDate);
       return;
     }
 
     // Update
-    _output.printInfo('🔄 Updating to ${updateInfo.latestVersion}...');
+    _output.printInfo('🔄 Updating to ${updateInfo?.latestVersion}...');
     final bool success = await UpdateChecker.runUpdate();
 
     if (success) {
-      _output.printSuccess('✅ Updated to ${updateInfo.latestVersion}');
+      _output.printSuccess('✅ Updated to ${updateInfo?.latestVersion}');
     } else {
       _output.printError('Failed to update');
       exit(ExitCodes.error);
