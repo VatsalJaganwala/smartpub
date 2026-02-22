@@ -28,15 +28,17 @@ class UpdateChecker {
   static Future<UpdateInfo> checkForUpdates({bool useCache = true}) async {
     try {
       // Check cache first only if useCache is true
+      String? latestVersion;
       if (useCache) {
         final cachedInfo = await _getCachedUpdateInfo();
         if (cachedInfo != null && !_isCacheExpired(cachedInfo.lastChecked)) {
-          return cachedInfo;
+          latestVersion = cachedInfo.latestVersion;
+        } else {
+          // Fetch latest version from pub.dev
+          latestVersion = await _fetchLatestVersion();
         }
       }
 
-      // Fetch latest version from pub.dev
-      final latestVersion = await _fetchLatestVersion();
       if (latestVersion == null) {
         return UpdateInfo(
           currentVersion: AppConfig.version,
@@ -45,10 +47,10 @@ class UpdateChecker {
           lastChecked: DateTime.now(),
         );
       }
-      bool _isNewerVersion(String v1, String v2) =>
+      bool isNewerVersion(String v1, String v2) =>
           Version.parse(v1) > Version.parse(v2);
       // Compare versions
-      final hasUpdate = _isNewerVersion(latestVersion, AppConfig.version);
+      final hasUpdate = isNewerVersion(latestVersion, AppConfig.version);
       final updateInfo = UpdateInfo(
         currentVersion: AppConfig.version,
         latestVersion: latestVersion,

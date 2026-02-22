@@ -4,17 +4,13 @@
 /// the SmartPub application.
 library;
 
-import 'dart:io';
-import 'package:yaml/yaml.dart';
-
 /// Application information and metadata
 class AppConfig {
   /// Application name
   static const String appName = 'SmartPub';
 
-  /// Current version of the application (loaded from pubspec.yaml)
-  static String get version => _version ?? '0.0.0';
-  static String? _version;
+  /// Current version of the application
+  static const String version = '1.0.6';
 
   /// Application description
   static const String description = 'Flutter Dependency Analyzer';
@@ -29,20 +25,8 @@ class AppConfig {
   static const String repositoryUrl =
       'https://github.com/VatsalJaganwala/smartpub';
 
-  /// Initialize the version from pubspec.yaml
-  static Future<void> initialize() async {
-    try {
-      final pubspecFile = File('pubspec.yaml');
-      if (await pubspecFile.exists()) {
-        final content = await pubspecFile.readAsString();
-        final yaml = loadYaml(content);
-        _version = yaml['version']?.toString();
-      }
-    } catch (e) {
-      // If we can't read the version, keep the default
-      _version = null;
-    }
-  }
+  /// Initialize configuration (now a no-op as version is hardcoded to prevent reading wrong pubspec)
+  static Future<void> initialize() async {}
 }
 
 /// File and directory constants

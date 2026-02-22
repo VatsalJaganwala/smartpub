@@ -182,7 +182,9 @@ class SmartPubCLI {
           .timeout(const Duration(seconds: 2));
 
       // Show update notification in a green box
-      _printUpdateNotification(updateInfo.latestVersion);
+      if (updateInfo.hasUpdate) {
+        _printUpdateNotification(updateInfo.latestVersion);
+      }
     } catch (e) {
       // Silently fail - don't interrupt user's workflow
       // This includes timeout, network errors, or no update available
