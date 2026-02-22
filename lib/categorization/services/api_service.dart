@@ -37,9 +37,9 @@ class ApiService {
           List<dynamic>.from(json['packages'] ?? <dynamic>[]);
 
       return packages
-          .where((dynamic p) => p is Map)
+          .whereType<Map>()
           .map((dynamic p) => PackageCategory.fromJson(
-              Map<String, dynamic>.from(p as Map? ?? <String, dynamic>{})))
+              Map<String, dynamic>.from(p)))
           .toList();
     } catch (e) {
       return <PackageCategory>[];
