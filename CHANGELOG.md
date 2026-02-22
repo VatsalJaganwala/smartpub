@@ -1,6 +1,13 @@
 # 📄 Changelog
 ---
 
+## [1.0.6] – 2026-02-22
+
+### 🐛 Bug Fixes
+
+* Fixed a bug where the update notification could appear even if the tool was up-to-date.
+
+---
 ## [1.0.4] – 2026-02-09
 
 ### 📚 Documentation
