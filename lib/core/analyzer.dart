@@ -40,9 +40,22 @@ class DependencyAnalyzer {
 
     // Analyze regular dependencies
     for (final String dep in dependencies.keys) {
-      if (dep == AnalysisConfig.flutterSdk) continue; // Skip Flutter SDK
-
       final PackageUsage? usage = usageMap[dep];
+
+      if (dep == AnalysisConfig.flutterSdk) {
+        final DependencyInfo info = DependencyInfo(
+          name: dep,
+          version: 'sdk: flutter',
+          section: DependencySection.dependencies,
+          status: DependencyStatus.used,
+          usedInLib: true,
+          usedInTest: false,
+          usedInBin: false,
+          usedInTool: false,
+        );
+        results.add(info);
+        continue;
+      }
 
       final DependencyInfo info = DependencyInfo(
         name: dep,
@@ -59,9 +72,23 @@ class DependencyAnalyzer {
 
     // Analyze dev dependencies
     for (final String dep in devDependencies.keys) {
-      if (dep == AnalysisConfig.flutterSdk) continue; // Skip Flutter SDK
-
       final PackageUsage? usage = usageMap[dep];
+
+      if (dep == AnalysisConfig.flutterSdk) {
+        final DependencyInfo info = DependencyInfo(
+          name: dep,
+          version: 'sdk: flutter',
+          section: DependencySection.devDependencies,
+          status: DependencyStatus.used,
+          usedInLib: true,
+          usedInTest: false,
+          usedInBin: false,
+          usedInTool: false,
+        );
+        results.add(info);
+        continue;
+      }
+
       final DependencyInfo info = DependencyInfo(
         name: dep,
         version: devDependencies[dep].toString(),

@@ -1,6 +1,15 @@
 # 📄 Changelog
 ---
 
+### **[1.0.7] – 2026-03-08**
+
+#### 🐛 Bug Fixes
+
+* Fixed `flutter` SDK being incorrectly detected as unused during `clean` and `group` commands.
+* Ensured `flutter` SDK is always placed at the top of `pubspec.yaml` when running `smartpub group --apply`.
+
+---
+
 ## [1.0.6] – 2026-02-22
 
 ### 🐛 Bug Fixes

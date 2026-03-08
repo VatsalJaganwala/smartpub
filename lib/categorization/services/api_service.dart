@@ -38,8 +38,8 @@ class ApiService {
 
       return packages
           .whereType<Map>()
-          .map((dynamic p) => PackageCategory.fromJson(
-              Map<String, dynamic>.from(p)))
+          .map((dynamic p) =>
+              PackageCategory.fromJson(Map<String, dynamic>.from(p)))
           .toList();
     } catch (e) {
       return <PackageCategory>[];

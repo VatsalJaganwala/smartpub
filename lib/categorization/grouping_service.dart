@@ -33,7 +33,17 @@ class GroupingService {
     final grouped = <String, List<DependencyInfo>>{};
     final categoryOrder = <String>[];
 
+    // Special case for Flutter SDK to ensure it's always at the top
+    final flutterSdkDeps =
+        dependencies.where((d) => d.name == AnalysisConfig.flutterSdk).toList();
+    if (flutterSdkDeps.isNotEmpty) {
+      grouped['SDK'] = flutterSdkDeps;
+      categoryOrder.add('SDK');
+    }
+
     for (final dep in dependencies) {
+      if (dep.name == AnalysisConfig.flutterSdk) continue;
+
       String category;
 
       // Check for local override first
@@ -138,7 +148,12 @@ class GroupingService {
       buffer.writeln('  # $category');
 
       for (final dep in deps) {
-        buffer.writeln('  ${dep.name}: ${dep.version}');
+        if (dep.version == '{sdk: flutter}' || dep.version == 'sdk: flutter') {
+          buffer.writeln('  ${dep.name}:');
+          buffer.writeln('    sdk: flutter');
+        } else {
+          buffer.writeln('  ${dep.name}: ${dep.version}');
+        }
       }
 
       // Add empty line between categories (except for last)
@@ -179,7 +194,12 @@ class GroupingService {
       lines.insert(insertIndex++, '  # $category');
 
       for (final DependencyInfo dep in deps) {
-        lines.insert(insertIndex++, '  ${dep.name}: ${dep.version}');
+        if (dep.version == '{sdk: flutter}' || dep.version == 'sdk: flutter') {
+          lines.insert(insertIndex++, '  ${dep.name}:');
+          lines.insert(insertIndex++, '    sdk: flutter');
+        } else {
+          lines.insert(insertIndex++, '  ${dep.name}: ${dep.version}');
+        }
       }
 
       // Add empty line between categories (except for last)
@@ -226,6 +246,7 @@ class GroupingService {
   /// Compare category priority for sorting
   int _compareCategoryPriority(String a, String b) {
     const priorityOrder = [
+      'SDK',
       'State Management',
       'Networking',
       'HTTP Clients',
