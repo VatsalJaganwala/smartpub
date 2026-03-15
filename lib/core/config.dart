@@ -10,7 +10,7 @@ class AppConfig {
   static const String appName = 'SmartPub';
 
   /// Current version of the application
-  static const String version = '1.0.7';
+  static const String version = '1.0.8';
 
   /// Application description
   static const String description = 'Flutter Dependency Analyzer';
@@ -282,19 +282,24 @@ class CategorizationConfig {
 }
 
 /// Exit codes for different scenarios
+///
+/// Follows Unix convention and matches `dart analyze`, `dependency_validator`:
+///   0 = clean / success
+///   1 = violations found (CI should fail the build)
+///   2 = tool error (bad config, missing pubspec.yaml, no backup, parse failure)
+///   3 = invalid CLI arguments
 class ExitCodes {
-  /// Success - no issues found
+  /// Success — no violations found, or violations were fixed successfully.
   static const int success = 0;
 
-  /// General error
-  static const int error = 1;
+  /// Violations found — unused deps, wrong section, or duplicates detected.
+  /// Also used when an apply operation itself fails (couldn't fix the issues).
+  static const int violationsFound = 1;
 
-  /// Issues found (for CI mode)
-  static const int issuesFound = 1;
+  /// Tool error — missing pubspec.yaml, no backup exists, parse failure,
+  /// or any unrecoverable internal error.
+  static const int toolError = 2;
 
-  /// File not found
-  static const int fileNotFound = 2;
-
-  /// Invalid arguments
+  /// Invalid CLI arguments (unknown flag, incompatible option combination).
   static const int invalidArguments = 3;
 }

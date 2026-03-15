@@ -77,12 +77,14 @@ class SmartPubCLI {
       // Get options
       final bool apply = args['apply'] == true;
       final bool interactive = args['interactive'] == true;
+      final bool failOnViolations = args['no-fail-on-violations'] != true;
 
       // Validate command + option combinations
       _validateUsage(command, apply, interactive);
 
       // Route to appropriate handler
-      await _handleCommand(command, apply, interactive);
+      await _handleCommand(command, apply, interactive,
+          failOnViolations: failOnViolations);
     } on FormatException catch (e) {
       _output.printError('Invalid arguments: ${e.message}');
       print('');
@@ -90,7 +92,7 @@ class SmartPubCLI {
       exit(ExitCodes.invalidArguments);
     } on Exception catch (e) {
       _output.printError('Error: $e');
-      exit(ExitCodes.error);
+      exit(ExitCodes.toolError);
     }
   }
 
@@ -104,7 +106,14 @@ class SmartPubCLI {
       ..addFlag('apply', help: 'Apply changes automatically', negatable: false)
       ..addFlag('interactive',
           help: 'Review and confirm changes interactively', negatable: false)
-      ..addFlag('no-color', help: 'Disable colored output', negatable: false);
+      ..addFlag('no-color', help: 'Disable colored output', negatable: false)
+      ..addFlag(
+        'no-fail-on-violations',
+        help:
+            'Exit 0 even when violations are found (warn-only mode for CI migration).\n'
+            'By default smartpub exits 1 when violations are detected.',
+        negatable: false,
+      );
   }
 
   /// Validate command and option combinations
@@ -141,7 +150,11 @@ class SmartPubCLI {
 
   /// Handle the command
   Future<void> _handleCommand(
-      String command, bool apply, bool interactive) async {
+    String command,
+    bool apply,
+    bool interactive, {
+    bool failOnViolations = true,
+  }) async {
     print(Strings.appTitle);
     print('');
 
@@ -159,7 +172,7 @@ class SmartPubCLI {
     // Route to command handler
     switch (command) {
       case 'check':
-        await _handleCheck(result);
+        await _handleCheck(result, failOnViolations: failOnViolations);
         break;
       case 'clean':
         await _handleClean(result, interactive);
@@ -238,28 +251,50 @@ class SmartPubCLI {
     print('');
   }
 
-  /// Handle 'check' command - preview only
-  Future<void> _handleCheck(AnalysisResult result) async {
+  /// Handle 'check' command - preview only.
+  ///
+  /// Exits [ExitCodes.success] (0) when no violations are found.
+  /// Exits [ExitCodes.violationsFound] (1) when violations exist, UNLESS
+  /// [failOnViolations] is false (--no-fail-on-violations flag), in which
+  /// case it exits 0 so CI pipelines can run in warn-only mode.
+  Future<void> _handleCheck(
+    AnalysisResult result, {
+    bool failOnViolations = true,
+  }) async {
     _output.printDryRunResults(result);
 
     if (!result.hasIssues) {
       _output.printInfo(Strings.noIssuesFound);
-      exit(ExitCodes.success);
+      exit(ExitCodes.success); // ✅ clean
     }
 
+    // Violations found
     print('');
     _output.printInfo('💡 To remove unused dependencies: smartpub clean');
     _output
         .printInfo('💡 To review changes first: smartpub clean --interactive');
+
+    if (failOnViolations) {
+      exit(ExitCodes.violationsFound); // ❌ CI fails the build
+    } else {
+      // --no-fail-on-violations: violations shown as warnings, build passes
+      _output.printInfo(
+          '⚠️  Violations found but --no-fail-on-violations is set. Exiting 0.');
+      exit(ExitCodes.success);
+    }
   }
 
-  /// Handle 'clean' command - remove unused dependencies
+  /// Handle 'clean' command - remove unused dependencies.
+  ///
+  /// Exits [ExitCodes.success] (0) when no violations exist OR after
+  /// successfully removing them. Exits [ExitCodes.violationsFound] (1) if the
+  /// apply step itself fails (violations remain).
   Future<void> _handleClean(AnalysisResult result, bool interactive) async {
     _output.printDryRunResults(result);
 
     if (!result.hasIssues) {
       _output.printInfo(Strings.noIssuesFound);
-      exit(ExitCodes.success);
+      exit(ExitCodes.success); // ✅ already clean
     }
 
     print('');
@@ -345,7 +380,11 @@ class SmartPubCLI {
     }
   }
 
-  /// Apply grouping to pubspec.yaml
+  /// Apply grouping to pubspec.yaml.
+  ///
+  /// Exits [ExitCodes.success] (0) on success.
+  /// Exits [ExitCodes.toolError] (2) if the backup or write fails (tool error,
+  /// not a violation — the user didn't cause this).
   Future<void> _applyGrouping(
     GroupingService service,
     GroupedDependencies deps,
@@ -353,11 +392,11 @@ class SmartPubCLI {
   ) async {
     _output.printInfo(Strings.applyingGrouping);
 
-    // Create backup
+    // Create backup before modifying pubspec.yaml
     final bool backupOk = await BackupService.createBackup();
     if (!backupOk) {
       _output.printError(Strings.backupFailed);
-      exit(ExitCodes.error);
+      exit(ExitCodes.toolError);
     }
 
     try {
@@ -373,9 +412,10 @@ class SmartPubCLI {
       print('');
       _output.printInfo(Strings.betaWarning);
       _output.printInfo(Strings.flutterGemsCredit);
+      exit(ExitCodes.success); // ✅ grouping applied
     } on Exception catch (e) {
       _output.printError('${Strings.failedToApplyGrouping}: $e');
-      exit(ExitCodes.error);
+      exit(ExitCodes.toolError);
     }
   }
 
@@ -407,34 +447,54 @@ class SmartPubCLI {
     }
   }
 
-  /// Handle apply result
+  /// Handle apply result and exit with the appropriate code.
+  ///
+  /// Exits [ExitCodes.success] (0):  apply succeeded (violations were fixed).
+  /// Exits [ExitCodes.violationsFound] (1): apply itself failed internally.
   void _handleApplyResult(ApplyResult result) {
     if (result.success) {
       _output
         ..printBackupCreated()
         ..printSuccess('✅ pubspec.yaml updated successfully');
+      exit(ExitCodes.success); // violations fixed → clean
     } else {
-      _output.printInfo('No changes made');
+      _output.printError(result.error ?? 'Failed to apply changes');
+      exit(ExitCodes.violationsFound); // couldn't fix them
     }
   }
 
-  /// Restore from backup
+  /// Restore from backup.
+  ///
+  /// Exits [ExitCodes.success] (0) on successful restore.
+  /// Exits [ExitCodes.toolError] (2) when no backup exists or an IO error
+  /// prevented restoring — both are tool-level errors, not violations.
   Future<void> _restoreBackup() async {
     print(Strings.appTitle);
     print('');
     _output.printInfo(Strings.restoringBackup);
 
-    final bool success = await BackupService.restoreFromBackup();
+    final BackupRestoreResult result = await BackupService.restoreFromBackup();
 
-    if (success) {
-      _output.printSuccess(Strings.restoreSuccess);
-    } else {
-      _output.printError(Strings.restoreFailed);
-      exit(ExitCodes.error);
+    switch (result.status) {
+      case RestoreStatus.success:
+        _output.printSuccess(Strings.restoreSuccess);
+        exit(ExitCodes.success); // ✅ restored
+      case RestoreStatus.noBackup:
+        _output.printError(
+          result.message ?? 'No backup file found. Run smartpub clean first.',
+        );
+        exit(ExitCodes.toolError); // 🔧 nothing to restore
+      case RestoreStatus.ioError:
+        _output.printError(result.message ?? Strings.restoreFailed);
+        exit(ExitCodes.toolError); // 🔧 IO failure
     }
   }
 
-  /// Update SmartPub
+  /// Update SmartPub.
+  ///
+  /// Exits [ExitCodes.success] (0) on successful update or when already
+  /// up-to-date. Exits [ExitCodes.toolError] (2) on tool-level failures
+  /// (not globally installed, network error, etc.).
   Future<void> _updateSmartPub() async {
     print(Strings.appTitle);
     print('');
@@ -446,7 +506,7 @@ class SmartPubCLI {
       _output.printError(
         'SmartPub is not globally installed. Install with: dart pub global activate smartpub',
       );
-      exit(ExitCodes.error);
+      exit(ExitCodes.toolError);
     }
 
     // Check for updates
@@ -466,7 +526,7 @@ class SmartPubCLI {
       _output.printSuccess('✅ Updated to ${updateInfo?.latestVersion}');
     } else {
       _output.printError('Failed to update');
-      exit(ExitCodes.error);
+      exit(ExitCodes.toolError);
     }
   }
 
@@ -479,22 +539,30 @@ USAGE:
   smartpub [command] [options]
 
 COMMANDS:
-  check        Preview unused dependencies (default)
-  clean        Remove unused dependencies
+  check        Preview violations — unused deps, misplaced deps (default)
+  clean        Remove unused / misplaced dependencies
   group        Preview dependency categorization
   restore      Restore pubspec.yaml from backup
   update       Update SmartPub to latest version
 
 OPTIONS:
-  --apply          Apply changes automatically
-  --interactive    Review and confirm changes interactively
-  --no-color       Disable colored output
-  -h, --help       Show help information
-  -v, --version    Show version information
+  --apply                  Apply changes automatically
+  --interactive            Review and confirm changes interactively
+  --no-fail-on-violations  Exit 0 even when violations are found (warn-only)
+  --no-color               Disable colored output
+  -h, --help               Show help information
+  -v, --version            Show version information
+
+EXIT CODES:
+  0  Clean — no violations found, or violations were fixed successfully
+  1  Violations found (use --no-fail-on-violations to suppress)
+  2  Tool error — missing pubspec.yaml, no backup, parse failure
+  3  Invalid arguments
 
 EXAMPLES:
   smartpub
   smartpub check
+  smartpub check --no-fail-on-violations   # warn-only, always exits 0
 
   smartpub clean
   smartpub clean --interactive

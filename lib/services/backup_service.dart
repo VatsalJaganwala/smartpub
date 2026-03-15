@@ -24,29 +24,62 @@ class BackupService {
       // Create backup by copying the file
       await pubspecFile.copy(FileConfig.backupFile);
 
+      // Automatically add .bak to .gitignore if it exists
+      await _addToGitignore();
+
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  /// Restore pubspec.yaml from backup
-  /// Returns true if restore was successful
-  static Future<bool> restoreFromBackup() async {
+  /// Automatically append *.bak to .gitignore if it exists
+  static Future<void> _addToGitignore() async {
     try {
-      final backupFile = File(FileConfig.backupFile);
+      final gitignore = File('.gitignore');
+      if (!gitignore.existsSync()) return;
 
-      // Check if backup exists
-      if (!backupFile.existsSync()) {
-        throw Exception('No backup file found (${FileConfig.backupFile})');
+      final content = await gitignore.readAsString();
+
+      // Check if it already ignores .bak files
+      if (content.contains('*.bak') ||
+          content.contains(FileConfig.backupFile)) {
+        return;
       }
 
-      // Restore by copying backup to pubspec.yaml
-      await backupFile.copy(FileConfig.pubspecFile);
+      // Append to the end of the file
+      final newline = content.isNotEmpty && !content.endsWith('\n') ? '\n' : '';
+      await gitignore.writeAsString(
+        '$newline\n# SmartPub safety backups\n*.bak\n',
+        mode: FileMode.append,
+      );
+    } catch (_) {
+      // Silently fail - this is a convenience feature, shouldn't break backup
+    }
+  }
 
-      return true;
+  /// Restore pubspec.yaml from backup.
+  ///
+  /// Returns a [BackupRestoreResult] that distinguishes between:
+  /// - [RestoreStatus.success] — restored successfully
+  /// - [RestoreStatus.noBackup] — no backup file exists (exit 2 in CLI)
+  /// - [RestoreStatus.ioError] — backup exists but copy failed (exit 2 in CLI)
+  static Future<BackupRestoreResult> restoreFromBackup() async {
+    final backupFile = File(FileConfig.backupFile);
+
+    if (!backupFile.existsSync()) {
+      return const BackupRestoreResult(
+        RestoreStatus.noBackup,
+        'No backup file found (${FileConfig.backupFile}). '
+        'Run smartpub clean first to create one.',
+      );
+    }
+
+    try {
+      await backupFile.copy(FileConfig.pubspecFile);
+      return const BackupRestoreResult(RestoreStatus.success);
     } catch (e) {
-      return false;
+      return BackupRestoreResult(RestoreStatus.ioError, 'Restore failed: $e');
     }
   }
 
@@ -148,6 +181,31 @@ class BackupService {
 
     return backups;
   }
+}
+
+/// Status of a restore operation
+enum RestoreStatus {
+  /// Restore completed successfully
+  success,
+
+  /// No backup file exists — user needs to run `smartpub clean` first
+  noBackup,
+
+  /// An IO/filesystem error occurred during the restore
+  ioError,
+}
+
+/// Result returned by [BackupService.restoreFromBackup]
+class BackupRestoreResult {
+  const BackupRestoreResult(this.status, [this.message]);
+
+  final RestoreStatus status;
+
+  /// Human-readable description (populated for [RestoreStatus.noBackup] and
+  /// [RestoreStatus.ioError]).
+  final String? message;
+
+  bool get isSuccess => status == RestoreStatus.success;
 }
 
 /// Information about a backup file

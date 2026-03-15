@@ -1,6 +1,14 @@
 # 📄 Changelog
 ---
 
+### **[1.0.8] – 2026-03-15**
+
+#### ✨ What’s New
+
+* **CI Integration Support:** SmartPub now returns standard Unix exit codes (`0` for success, `1` for violations found, `2` for tool errors, `3` for invalid arguments), making it perfect for CI/CD pipelines (GitHub Actions, GitLab CI, Bitrise).
+* Added `--no-fail-on-violations` flag to run in "warn-only" mode (always exits `0`), which is helpful during initial CI migration.
+---
+
 ### **[1.0.7] – 2026-03-08**
 
 #### 🐛 Bug Fixes

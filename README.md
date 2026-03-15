@@ -159,12 +159,40 @@ smartpub update
 ## ⚙️ Options
 
 ```text
---apply          Apply changes automatically
---interactive    Review and confirm changes interactively
---no-color       Disable colored output (CI-friendly)
--h, --help       Show help information
--v, --version    Show version information
+--apply                  Apply changes automatically
+--interactive            Review and confirm changes interactively
+--no-fail-on-violations  Exit 0 even when violations are found (warn-only mode)
+--no-color               Disable colored output (CI-friendly)
+-h, --help               Show help information
+-v, --version            Show version information
 ```
+
+---
+
+## 🏗️ CI Integration & Exit Codes
+
+SmartPub returns standard exit codes so you can use it as a blocking gate in your pipelines (GitHub Actions, GitLab CI, Bitrise).
+
+| Exit Code | Meaning |
+|-----------|---------|
+| `0` | **Success:** No violations found (or they were successfully cleaned). |
+| `1` | **Violations Detected:** Unused or misplaced dependencies found. |
+| `2` | **Tool Error:** Missing `pubspec.yaml`, no backup exists, or parse error. |
+| `3` | **Invalid Arguments:** Unknown flags or incompatible options passed. |
+
+### Example GitHub Action (Fail on violations)
+
+```yaml
+- name: Check for unused dependencies
+  run: dart run smartpub check
+```
+
+### Example CI Migration (Warn-only mode)
+If you want to integrate SmartPub into CI but aren't ready to fail the build yet, use:
+```bash
+smartpub check --no-fail-on-violations
+```
+This will print all violations but safely exit `0`.
 
 ---
 
