@@ -37,7 +37,7 @@ class ApplyService {
         appliedChanges.add('Removed unused dependency: ${dep.name}');
       }
 
-      // Generate changes for misplaced dependencies
+      // Generate changes for misplaced dependencies (over-promoted)
       final misplacedDeps = analysisResult.testOnlyDependencies
           .where((DependencyInfo dep) =>
               dep.section == DependencySection.dependencies)
@@ -49,6 +49,20 @@ class ApplyService {
           action: ChangeAction.moveToDevDependencies,
         ));
         appliedChanges.add('Moved to dev_dependencies: ${dep.name}');
+      }
+
+      // Generate changes for under-promoted dependencies
+      final underPromotedDeps = analysisResult.testOnlyDependencies
+          .where((DependencyInfo dep) =>
+              dep.section == DependencySection.devDependencies)
+          .toList();
+
+      for (final dep in underPromotedDeps) {
+        changes.add(DependencyChange(
+          packageName: dep.name,
+          action: ChangeAction.moveToDependencies,
+        ));
+        appliedChanges.add('Moved to dependencies: ${dep.name}');
       }
 
       // Generate changes for duplicate dependencies
@@ -135,7 +149,7 @@ class ApplyService {
         }
       }
 
-      // Prompt for misplaced dependencies
+      // Prompt for misplaced dependencies (over-promoted)
       final misplacedDeps = analysisResult.testOnlyDependencies
           .where((DependencyInfo dep) =>
               dep.section == DependencySection.dependencies)
@@ -151,6 +165,25 @@ class ApplyService {
             action: ChangeAction.moveToDevDependencies,
           ));
           appliedChanges.add('Moved to dev_dependencies: ${dep.name}');
+        }
+      }
+
+      // Prompt for under-promoted dependencies
+      final underPromotedDeps = analysisResult.testOnlyDependencies
+          .where((DependencyInfo dep) =>
+              dep.section == DependencySection.devDependencies)
+          .toList();
+
+      for (final dep in underPromotedDeps) {
+        final shouldMove = await promptUser(
+            '${OutputConfig.testOnlyIndicator} ${dep.name} — ${dep.usageDescription}. Move to dependencies? [Y/n]');
+
+        if (shouldMove) {
+          changes.add(DependencyChange(
+            packageName: dep.name,
+            action: ChangeAction.moveToDependencies,
+          ));
+          appliedChanges.add('Moved to dependencies: ${dep.name}');
         }
       }
 
@@ -221,7 +254,7 @@ class ApplyService {
       changes.add('Would remove unused dependency: ${dep.name}');
     }
 
-    // Preview misplaced dependency moves
+    // Preview misplaced dependency moves (over-promoted)
     final misplacedDeps = analysisResult.testOnlyDependencies
         .where((DependencyInfo dep) =>
             dep.section == DependencySection.dependencies)
@@ -230,6 +263,17 @@ class ApplyService {
     for (final dep in misplacedDeps) {
       changes.add(
           'Would move to dev_dependencies: ${dep.name} (${dep.usageDescription})');
+    }
+
+    // Preview under-promoted dependency moves
+    final underPromotedDeps = analysisResult.testOnlyDependencies
+        .where((DependencyInfo dep) =>
+            dep.section == DependencySection.devDependencies)
+        .toList();
+
+    for (final dep in underPromotedDeps) {
+      changes.add(
+          'Would move to dependencies: ${dep.name} (${dep.usageDescription})');
     }
 
     // Preview duplicate dependency fixes

@@ -14,6 +14,7 @@ import 'package:smartpub/categorization/grouping_service.dart';
 import 'package:smartpub/core/analyzer.dart';
 import 'package:smartpub/core/config.dart';
 import 'package:smartpub/core/models/dependency_info.dart';
+import 'package:smartpub/core/models/smartpub_config.dart';
 import 'package:smartpub/core/strings.dart';
 import 'package:smartpub/services/apply_service.dart';
 import 'package:smartpub/services/backup_service.dart';
@@ -74,16 +75,30 @@ class SmartPubCLI {
         return;
       }
 
+      if (command == 'init') {
+        await _handleInit();
+        return;
+      }
+
       // Get options
       final bool apply = args['apply'] == true;
       final bool interactive = args['interactive'] == true;
-      final bool failOnViolations = args['no-fail-on-violations'] != true;
+      final String? configPath = args['config'] as String?;
+
+      // Load config
+      final SmartpubConfig config =
+          SmartpubConfig.load('.', configPath: configPath);
+
+      // CLI flag overrides config file default
+      final bool failOnViolations = args['no-fail-on-violations'] == true
+          ? false
+          : config.failOnViolations;
 
       // Validate command + option combinations
       _validateUsage(command, apply, interactive);
 
       // Route to appropriate handler
-      await _handleCommand(command, apply, interactive,
+      await _handleCommand(command, apply, interactive, config,
           failOnViolations: failOnViolations);
     } on FormatException catch (e) {
       _output.printError('Invalid arguments: ${e.message}');
@@ -113,6 +128,10 @@ class SmartPubCLI {
             'Exit 0 even when violations are found (warn-only mode for CI migration).\n'
             'By default smartpub exits 1 when violations are detected.',
         negatable: false,
+      )
+      ..addOption(
+        'config',
+        help: 'Path to custom config file (default: smartpub.yaml)',
       );
   }
 
@@ -141,9 +160,10 @@ class SmartPubCLI {
     }
 
     // Validate command exists
-    if (!['check', 'clean', 'group', 'restore', 'update'].contains(command)) {
+    if (!['check', 'clean', 'group', 'restore', 'update', 'init']
+        .contains(command)) {
       _output.printError('❌ Unknown command: $command');
-      print('   Valid commands: check, clean, group, restore, update');
+      print('   Valid commands: check, clean, group, init, restore, update');
       exit(ExitCodes.invalidArguments);
     }
   }
@@ -152,7 +172,8 @@ class SmartPubCLI {
   Future<void> _handleCommand(
     String command,
     bool apply,
-    bool interactive, {
+    bool interactive,
+    SmartpubConfig config, {
     bool failOnViolations = true,
   }) async {
     print(Strings.appTitle);
@@ -166,7 +187,7 @@ class SmartPubCLI {
 
     // Run analysis
     _output.printInfo(Strings.scanningDependencies);
-    final DependencyAnalyzer analyzer = DependencyAnalyzer();
+    final DependencyAnalyzer analyzer = DependencyAnalyzer(config: config);
     final AnalysisResult result = await analyzer.analyze();
 
     // Route to command handler
@@ -530,6 +551,60 @@ class SmartPubCLI {
     }
   }
 
+  /// Initialize a default smartpub.yaml configuration file.
+  ///
+  /// Exits [ExitCodes.success] (0) on successful creation or when the file
+  /// already exists. Exits [ExitCodes.toolError] (2) on write errors.
+  Future<void> _handleInit() async {
+    print(Strings.appTitle);
+    print('');
+
+    final File file = File('smartpub.yaml');
+    if (file.existsSync()) {
+      _output
+          .printWarning('⚠️  smartpub.yaml already exists in this directory.');
+      exit(ExitCodes.success);
+    }
+
+    _output
+        .printInfo('📝 Creating a default smartpub.yaml configuration file...');
+
+    const String template = '''# smartpub.yaml — place in project root
+
+# 1. Packages to never flag as unused or misplaced
+ignore:
+  - build_runner
+  - flutter_native_splash
+
+# 2. Path patterns/directories to exclude from file scanning (using globs)
+exclude:
+  - "lib/generated/**"
+  - "lib/l10n/**"
+  - "test/fixtures/**"
+
+# 3. Version constraint quality
+allow_pins: false
+
+# 4. Exit non-zero on violations in CI (defaults to true)
+fail_on_violations: true
+
+# 5. Fine-tune which checks to run
+checks:
+  unused: true
+  missing: true
+  promotions: true
+''';
+
+    try {
+      await file.writeAsString(template);
+      _output.printSuccess('✅ smartpub.yaml initialized successfully!');
+      exit(ExitCodes.success);
+    } catch (e) {
+      _output.printError('Failed to write smartpub.yaml: $e');
+      exit(ExitCodes.toolError);
+    }
+  }
+
   /// Print help
   void _printHelp() {
     print('''
@@ -542,6 +617,7 @@ COMMANDS:
   check        Preview violations — unused deps, misplaced deps (default)
   clean        Remove unused / misplaced dependencies
   group        Preview dependency categorization
+  init         Initialize a default smartpub.yaml configuration file
   restore      Restore pubspec.yaml from backup
   update       Update SmartPub to latest version
 

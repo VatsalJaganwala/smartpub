@@ -1,0 +1,992 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary)}
+.root{padding:1rem 0}
+
+.progress-bar-wrap{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1rem;margin-bottom:1.5rem;border:0.5px solid var(--color-border-tertiary)}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.625rem}
+.progress-label{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.progress-count{font-size:13px;color:var(--color-text-secondary)}
+.track{height:6px;background:var(--color-border-tertiary);border-radius:3px;overflow:hidden}
+.fill{height:100%;background:#1D9E75;border-radius:3px;transition:width .4s}
+
+.phase-wrap{margin-bottom:1.25rem}
+.phase-header{display:flex;align-items:center;gap:8px;margin-bottom:.625rem}
+.phase-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:10px;letter-spacing:.03em}
+.pb-red{background:#FCEBEB;color:#A32D2D}
+.pb-amber{background:#FAEEDA;color:#854F0B}
+.pb-teal{background:#E1F5EE;color:#0F6E56}
+.pb-blue{background:#E6F1FB;color:#185FA5}
+.phase-title{font-size:13px;color:var(--color-text-secondary);font-weight:400}
+
+.feat{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:8px;overflow:hidden;background:var(--color-background-primary)}
+.feat.done{opacity:.6}
+.feat-head{display:flex;align-items:center;gap:10px;padding:.75rem 1rem;cursor:pointer;user-select:none}
+.feat-head:hover{background:var(--color-background-secondary)}
+.feat-cb{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:background .15s,border-color .15s}
+.feat-cb.checked{background:#1D9E75;border-color:#1D9E75}
+.feat-cb.checked::after{content:'';display:block;width:5px;height:9px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)}
+.feat-info{flex:1;min-width:0}
+.feat-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.feat-sub{font-size:11px;color:var(--color-text-tertiary);margin-top:1px}
+.feat-tags{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500;white-space:nowrap}
+.tag-effort-s{background:#E1F5EE;color:#085041}
+.tag-effort-m{background:#FAEEDA;color:#854F0B}
+.tag-effort-l{background:#FCEBEB;color:#A32D2D}
+.tag-impact{background:#EEEDFE;color:#534AB7}
+.feat-chevron{font-size:16px;color:var(--color-text-tertiary);transition:transform .2s;margin-left:4px;flex-shrink:0}
+.feat-chevron.open{transform:rotate(90deg)}
+
+.feat-body{display:none;border-top:0.5px solid var(--color-border-tertiary)}
+.feat-body.open{display:block}
+.feat-body-inner{padding:1rem}
+
+.guide-section{margin-bottom:1rem}
+.guide-section:last-child{margin-bottom:0}
+.gs-label{font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:.375rem}
+.gs-text{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+.gs-text strong{font-weight:500;color:var(--color-text-primary)}
+
+.code-block{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:.75rem 1rem;margin-top:.5rem;font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);line-height:1.7;white-space:pre;overflow-x:auto}
+.code-block .kw{color:#185FA5}
+.code-block .str{color:#0F6E56}
+.code-block .cm{color:var(--color-text-tertiary)}
+.code-block .fn{color:#534AB7}
+
+.warn-box{background:#FAEEDA;border:0.5px solid #FAC775;border-radius:var(--border-radius-md);padding:.625rem .875rem;font-size:12px;color:#854F0B;line-height:1.5;margin-top:.5rem}
+.tip-box{background:#E1F5EE;border:0.5px solid #9FE1CB;border-radius:var(--border-radius-md);padding:.625rem .875rem;font-size:12px;color:#0F6E56;line-height:1.5;margin-top:.5rem}
+.info-box{background:#E6F1FB;border:0.5px solid #B5D4F4;border-radius:var(--border-radius-md);padding:.625rem .875rem;font-size:12px;color:#185FA5;line-height:1.5;margin-top:.5rem}
+
+.edge-list{list-style:none;margin-top:.5rem;display:flex;flex-direction:column;gap:4px}
+.edge-list li{font-size:12px;color:var(--color-text-secondary);padding-left:1rem;position:relative;line-height:1.5}
+.edge-list li::before{content:'·';position:absolute;left:0;color:var(--color-text-tertiary)}
+
+.ask-btn{margin-top:.75rem;font-size:12px}
+</style>
+
+<div class="root">
+
+<div class="progress-bar-wrap">
+  <div class="progress-top">
+    <span class="progress-label">smartpub roadmap to #1</span>
+    <span class="progress-count" id="prog-count">0 / 15 completed</span>
+  </div>
+  <div class="track"><div class="fill" id="prog-fill" style="width:0%"></div></div>
+</div>
+
+<div class="phase-wrap">
+  <div class="phase-header">
+    <span class="phase-badge pb-red">Phase 1 — critical parity</span>
+    <span class="phase-title">Must ship before you can compete with dependency_validator</span>
+  </div>
+
+  <div class="feat" id="f1">
+    <div class="feat-head" onclick="toggleFeat('f1')">
+      <div class="feat-cb" id="cb-f1" onclick="toggleCheck(event,'f1')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Non-zero exit codes on violations</div>
+        <div class="feat-sub">The single highest-impact change · ~30 minutes to ship</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-s">Effort: XS</span>
+        <span class="tag tag-impact">Impact: critical</span>
+      </div>
+      <div class="feat-chevron" id="ch-f1">›</div>
+    </div>
+    <div class="feat-body" id="fb-f1">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">When smartpub detects violations (unused deps, missing deps, promotion issues), it must exit with a non-zero code — conventionally <strong>exit(1)</strong>. Right now it exits 0 regardless. CI systems like GitHub Actions, GitLab CI, and Bitrise interpret any non-zero exit as a build failure. Without this, smartpub cannot be used as a blocking gate in any pipeline.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Implementation</div>
+          <div class="gs-text">Find your main analysis runner — wherever you collect the final list of violations. Add a single check at the end:</div>
+          <div class="code-block"><span class="cm">// In your check/clean command runner</span>
+<span class="kw">final</span> violations = analyzer.findUnused();
+
+<span class="kw">if</span> (violations.isNotEmpty) {
+  reporter.printViolations(violations);
+  <span class="fn">exit</span>(<span class="str">1</span>);  <span class="cm">// non-zero = CI fails the build</span>
+}
+
+<span class="fn">exit</span>(<span class="str">0</span>);  <span class="cm">// clean = CI passes</span></div>
+          <div class="tip-box">Import dart:io for exit(). Add a --no-fail-on-violations flag so teams can run it in warning-only mode during migration. Default must be fail.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Exit code conventions</div>
+          <div class="gs-text">Use <strong>exit(1)</strong> for violations found. Use <strong>exit(2)</strong> for tool errors (bad config, missing pubspec.yaml, parse failure). Use <strong>exit(0)</strong> for clean. This matches the convention used by dart analyze, dependency_validator, and most Unix CLI tools.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Edge cases</div>
+          <ul class="edge-list">
+            <li>The <code>check</code> command should exit(1) when violations exist, even if no changes are made</li>
+            <li>The <code>clean</code> command should exit(0) after successfully removing violations (they were fixed)</li>
+            <li>The <code>group</code> command with --apply should exit(0) on success, exit(1) if it couldn't apply</li>
+            <li>The <code>restore</code> command should exit(0) on success, exit(2) if no backup exists</li>
+          </ul>
+        </div>
+        <button class="ask-btn" onclick="sendPrompt('Show me the exact Dart code to add exit codes to smartpub including the --no-fail flag')">Show me the full Dart implementation ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f2">
+    <div class="feat-head" onclick="toggleFeat('f2')">
+      <div class="feat-cb" id="cb-f2" onclick="toggleCheck(event,'f2')"></div>
+      <div class="feat-info">
+        <div class="feat-name">smartpub.yaml config file</div>
+        <div class="feat-sub">Persistent exclusions and team-shareable settings</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-m">Effort: S</span>
+        <span class="tag tag-impact">Impact: critical</span>
+      </div>
+      <div class="feat-chevron" id="ch-f2">›</div>
+    </div>
+    <div class="feat-body" id="fb-f2">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">A YAML file at the project root that lets teams persist their configuration. Without this, every developer and every CI job must re-pass the same flags on every run. Teams need to be able to commit this file to git and have it work consistently everywhere.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Schema design</div>
+          <div class="code-block"><span class="cm"># smartpub.yaml — place in project root</span>
+
+<span class="cm"># Packages to never flag as unused</span>
+<span class="kw">ignore</span>:
+  - build_runner     <span class="cm"># code generator, no direct imports</span>
+  - flutter_native_splash
+
+<span class="cm"># Directories to skip when scanning imports</span>
+<span class="kw">exclude</span>:
+  - <span class="str">"lib/generated/**"</span>
+  - <span class="str">"lib/l10n/**"</span>
+
+<span class="cm"># Allow ==1.2.3 pinned versions without warning</span>
+<span class="kw">allow_pins</span>: <span class="str">false</span>
+
+<span class="cm"># Exit non-zero on violations (default: true)</span>
+<span class="kw">fail_on_violations</span>: <span class="str">true</span>
+
+<span class="cm"># Which checks to run</span>
+<span class="kw">checks</span>:
+  <span class="kw">unused</span>: <span class="str">true</span>
+  <span class="kw">missing</span>: <span class="str">true</span>
+  <span class="kw">promotions</span>: <span class="str">true</span></div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Implementation</div>
+          <div class="gs-text">Use the <strong>checked_yaml</strong> + <strong>json_annotation</strong> packages (already used by dependency_validator) to parse and validate the config with typed models and helpful error messages on bad values.</div>
+          <div class="code-block"><span class="kw">import</span> <span class="str">'package:checked_yaml/checked_yaml.dart'</span>;
+
+<span class="fn">@JsonSerializable</span>()
+<span class="kw">class</span> <span class="fn">SmartpubConfig</span> {
+  <span class="kw">final</span> List&lt;String&gt; ignore;
+  <span class="kw">final</span> List&lt;String&gt; exclude;
+  <span class="kw">final</span> <span class="kw">bool</span> allowPins;
+  <span class="kw">final</span> <span class="kw">bool</span> failOnViolations;
+
+  <span class="kw">const</span> <span class="fn">SmartpubConfig</span>({
+    <span class="kw">this</span>.ignore = <span class="kw">const</span> [],
+    <span class="kw">this</span>.exclude = <span class="kw">const</span> [],
+    <span class="kw">this</span>.allowPins = <span class="str">false</span>,
+    <span class="kw">this</span>.failOnViolations = <span class="str">true</span>,
+  });
+}
+
+<span class="cm">// Load from file, fall back to defaults</span>
+<span class="fn">SmartpubConfig</span> loadConfig(String projectPath) {
+  <span class="kw">final</span> file = File(<span class="str">'$projectPath/smartpub.yaml'</span>);
+  <span class="kw">if</span> (!file.existsSync()) <span class="kw">return const</span> SmartpubConfig();
+  <span class="kw">return</span> checkedYamlDecode(file.readAsStringSync(),
+    (m) => SmartpubConfig.fromJson(m!));
+}</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Edge cases</div>
+          <ul class="edge-list">
+            <li>Config not found → silently use defaults, do not error</li>
+            <li>Bad YAML syntax → print a clear error with line number, exit(2)</li>
+            <li>Unknown keys → warn but do not error (forward compatibility)</li>
+            <li>CLI flags always override config file values</li>
+            <li>Support --config path/to/other.yaml to specify non-default config location</li>
+          </ul>
+        </div>
+        <button class="ask-btn" onclick="sendPrompt('Write the full SmartpubConfig Dart class with fromJson, toJson, and file loading logic')">Generate the full config model ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f3">
+    <div class="feat-head" onclick="toggleFeat('f3')">
+      <div class="feat-cb" id="cb-f3" onclick="toggleCheck(event,'f3')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Missing dependency detection</div>
+        <div class="feat-sub">Find packages used in code but not declared in pubspec.yaml</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-m">Effort: M</span>
+        <span class="tag tag-impact">Impact: critical</span>
+      </div>
+      <div class="feat-chevron" id="ch-f3">›</div>
+    </div>
+    <div class="feat-body" id="fb-f3">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">Scan every <strong>.dart</strong> file for <code>import 'package:X/...'</code> and <code>export 'package:X/...'</code> statements. Collect the set of unique package names <strong>X</strong>. Then cross-reference against pubspec.yaml's declared dependencies. Any package imported in code but not declared in pubspec is a missing dependency — it works today only because it's a transitive dep of something else, and will silently break if that intermediate package changes.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Implementation algorithm</div>
+          <div class="code-block"><span class="cm">// Step 1: collect declared packages from pubspec.yaml</span>
+<span class="kw">final</span> declared = {
+  ...pubspec.dependencies.keys,
+  ...pubspec.devDependencies.keys,
+};
+
+<span class="cm">// Step 2: scan all .dart files for package: imports</span>
+<span class="kw">final</span> imported = &lt;String&gt;{};
+<span class="kw">final</span> importRe = RegExp(<span class="str">r"import\s+['\"]package:([^/]+)/"</span>);
+<span class="kw">final</span> exportRe = RegExp(<span class="str">r"export\s+['\"]package:([^/]+)/"</span>);
+
+<span class="kw">for</span> (<span class="kw">final</span> file <span class="kw">in</span> dartFiles) {
+  <span class="kw">final</span> content = file.readAsStringSync();
+  importRe.allMatches(content)
+    .forEach((m) => imported.add(m.group(<span class="str">1</span>)!));
+  exportRe.allMatches(content)
+    .forEach((m) => imported.add(m.group(<span class="str">1</span>)!));
+}
+
+<span class="cm">// Step 3: find missing = imported but not declared</span>
+<span class="kw">final</span> packageName = pubspec.name; <span class="cm">// exclude self-imports</span>
+<span class="kw">final</span> sdkPackages = {<span class="str">'dart'</span>, <span class="str">'flutter'</span>}; <span class="cm">// not in pubspec</span>
+
+<span class="kw">final</span> missing = imported
+  .where((p) => !declared.contains(p))
+  .where((p) => p != packageName)
+  .where((p) => !sdkPackages.contains(p))
+  .toList();</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">False positive cases to handle</div>
+          <ul class="edge-list">
+            <li><code>flutter</code> and <code>dart</code> are SDK packages — never flag them as missing</li>
+            <li>The project's own package name (self-imports) — exclude it</li>
+            <li>Packages that declare executables or builders don't need to be imported — don't require them to appear in code</li>
+            <li>Conditional imports (<code>// ignore: depend_on_referenced_packages</code>) — respect ignore comments</li>
+            <li>Generated files (<code>*.g.dart</code>, <code>*.freezed.dart</code>) — configure exclusion in smartpub.yaml</li>
+          </ul>
+        </div>
+        <div class="warn-box">Missing dep detection is read-only — it should never auto-fix. The user must manually add the dep to pubspec.yaml. Auto-adding would choose the wrong version range.</div>
+        <button class="ask-btn" onclick="sendPrompt('Write the complete Dart implementation for missing dependency detection in smartpub including false positive handling')">Generate the full implementation ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f4">
+    <div class="feat-head" onclick="toggleFeat('f4')">
+      <div class="feat-cb" id="cb-f4" onclick="toggleCheck(event,'f4')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Over- and under-promoted detection</div>
+        <div class="feat-sub">Flag deps in the wrong section of pubspec.yaml</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-m">Effort: M</span>
+        <span class="tag tag-impact">Impact: critical</span>
+      </div>
+      <div class="feat-chevron" id="ch-f4">›</div>
+    </div>
+    <div class="feat-body" id="fb-f4">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text"><strong>Under-promoted:</strong> Package used inside <code>lib/</code> but declared only as <code>dev_dependency</code>. This is a bug — when other packages depend on yours, they won't get this transitive dep and the code will fail to compile. <strong>Over-promoted:</strong> Package only used outside <code>lib/</code> (in test/, tool/, bin/) but declared as a regular <code>dependency</code>. This inflates app bundle size for consumers.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Implementation</div>
+          <div class="code-block"><span class="cm">// Categorise each dart file by location</span>
+<span class="kw">enum</span> FileScope { lib, nonLib }
+
+FileScope scopeOf(String filePath) =>
+  filePath.contains(<span class="str">'/lib/'</span>) ? FileScope.lib : FileScope.nonLib;
+
+<span class="cm">// Build: package → set of scopes that import it</span>
+<span class="kw">final</span> usedInLib = &lt;String&gt;{};
+<span class="kw">final</span> usedOutsideLib = &lt;String&gt;{};
+
+<span class="kw">for</span> (<span class="kw">final</span> file <span class="kw">in</span> dartFiles) {
+  <span class="kw">final</span> scope = scopeOf(file.path);
+  <span class="kw">final</span> pkgs = extractImportedPackages(file);
+  <span class="kw">if</span> (scope == FileScope.lib) {
+    usedInLib.addAll(pkgs);
+  } <span class="kw">else</span> {
+    usedOutsideLib.addAll(pkgs);
+  }
+}
+
+<span class="cm">// Under-promoted: in lib, but only a dev_dep</span>
+<span class="kw">final</span> underPromoted = pubspec.devDependencies.keys
+  .where((p) => usedInLib.contains(p))
+  .toList();
+
+<span class="cm">// Over-promoted: not in lib, but a regular dep</span>
+<span class="kw">final</span> overPromoted = pubspec.dependencies.keys
+  .where((p) => !usedInLib.contains(p))
+  .where((p) => usedOutsideLib.contains(p))
+  .toList();</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Reporting</div>
+          <div class="gs-text">Show clear, actionable output for each violation:</div>
+          <div class="code-block"><span class="cm">Under-promoted — move to dependencies:</span>
+  <span class="str">mocktail</span>   used in lib/services/auth_service.dart
+             but declared as dev_dependency
+
+<span class="cm">Over-promoted — move to dev_dependencies:</span>
+  <span class="str">build_runner</span>  only used in test/ and tool/
+               declared as dependency (inflates bundle)</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Edge cases</div>
+          <ul class="edge-list">
+            <li>flutter_test, build, build_runner are expected as dev_dependencies — pre-whitelist them</li>
+            <li>Packages with builders (auto-applied) count as used even without imports</li>
+            <li>A package used in BOTH lib/ and test/ is correctly promoted as a regular dependency</li>
+            <li>flutter_lints, analysis_options.yaml references — not detectable by import scanning, ignore them</li>
+          </ul>
+        </div>
+        <button class="ask-btn" onclick="sendPrompt('Write the Dart code for over and under promoted dependency detection in smartpub')">Generate the full implementation ↗</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="phase-wrap">
+  <div class="phase-header">
+    <span class="phase-badge pb-amber">Phase 2 — moat features</span>
+    <span class="phase-title">No competitor offers these — this is how you win</span>
+  </div>
+
+  <div class="feat" id="f5">
+    <div class="feat-head" onclick="toggleFeat('f5')">
+      <div class="feat-cb" id="cb-f5" onclick="toggleCheck(event,'f5')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Monorepo / Pub Workspace support</div>
+        <div class="feat-sub">-C flag + workspace traversal</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-m">Effort: M</span>
+        <span class="tag tag-impact">Impact: high</span>
+      </div>
+      <div class="feat-chevron" id="ch-f5">›</div>
+    </div>
+    <div class="feat-body" id="fb-f5">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">Dart's official workspace feature allows multiple packages in one repo to share a resolved dependency tree. smartpub needs a <strong>-C &lt;path&gt;</strong> flag (run on a sub-package) and automatic workspace detection (run on root = analyse all packages). Without this, any project using Flutter monorepo patterns cannot use smartpub at all.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Implementation</div>
+          <div class="code-block"><span class="cm">// 1. Add -C / --directory flag to all commands</span>
+final parser = ArgParser()
+  ..addOption(<span class="str">'directory'</span>, abbr: <span class="str">'C'</span>,
+     help: <span class="str">'Run in this subdirectory'</span>);
+
+<span class="cm">// 2. Detect workspace at root pubspec.yaml</span>
+<span class="kw">bool</span> isWorkspaceRoot(String path) {
+  <span class="kw">final</span> pubspec = loadPubspec(path);
+  <span class="kw">return</span> pubspec.containsKey(<span class="str">'workspace'</span>);
+}
+
+<span class="cm">// 3. Traverse all workspace members</span>
+List&lt;String&gt; getWorkspacePackages(String rootPath) {
+  <span class="kw">final</span> pubspec = loadPubspec(rootPath);
+  <span class="kw">final</span> members = pubspec[<span class="str">'workspace'</span>] <span class="kw">as</span> List;
+  <span class="kw">return</span> members
+    .map((m) => <span class="str">'$rootPath/$m'</span>)
+    .toList();
+}
+
+<span class="cm">// 4. Run analysis on each, aggregate results</span>
+<span class="kw">for</span> (<span class="kw">final</span> pkg <span class="kw">in</span> getWorkspacePackages(root)) {
+  <span class="kw">final</span> results = analyzePackage(pkg);
+  printPackageHeader(pkg);
+  printResults(results);
+  <span class="kw">if</span> (results.hasViolations) overallExitCode = <span class="str">1</span>;
+}</div>
+        </div>
+        <div class="tip-box">Match dependency_validator's exact -C behaviour: running on the workspace root analyses root + all members. Running with -C on a sub-package analyses only that package.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f6">
+    <div class="feat-head" onclick="toggleFeat('f6')">
+      <div class="feat-cb" id="cb-f6" onclick="toggleCheck(event,'f6')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Dependency health scoring</div>
+        <div class="feat-sub">Live pub.dev API checks — discontinued, deprecated, abandoned</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-l">Effort: L</span>
+        <span class="tag tag-impact">Impact: high</span>
+      </div>
+      <div class="feat-chevron" id="ch-f6">›</div>
+    </div>
+    <div class="feat-body" id="fb-f6">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">Query pub.dev's public REST API for each dependency at runtime. Check: is the package discontinued? deprecated? Was its last publish more than 18 months ago? Is its pub points score below 60? This turns smartpub into a continuous health monitor — no competitor does this today.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">pub.dev API endpoints</div>
+          <div class="code-block"><span class="cm">// Package metadata</span>
+GET https://pub.dev/api/packages/{package}
+
+<span class="cm">// Response contains:</span>
+{
+  <span class="str">"latest"</span>: {
+    <span class="str">"pubspec"</span>: { <span class="str">"version"</span>: <span class="str">"2.1.0"</span> }
+  },
+  <span class="str">"isDiscontinued"</span>: <span class="str">false</span>,
+  <span class="str">"replacedBy"</span>: <span class="str">null</span>   <span class="cm">// if discontinued, points here</span>
+}
+
+<span class="cm">// Package score (pub points, likes, popularity)</span>
+GET https://pub.dev/api/packages/{package}/score
+
+<span class="cm">// Response contains:</span>
+{
+  <span class="str">"grantedPoints"</span>: <span class="str">110</span>,
+  <span class="str">"maxPoints"</span>: <span class="str">160</span>,
+  <span class="str">"popularityScore"</span>: <span class="str">0.94</span>,
+  <span class="str">"likeCount"</span>: <span class="str">283</span>
+}</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Implementation</div>
+          <div class="code-block"><span class="kw">Future</span>&lt;PackageHealth&gt; checkHealth(String package) <span class="kw">async</span> {
+  <span class="kw">final</span> meta = <span class="kw">await</span> http.get(
+    Uri.parse(<span class="str">'https://pub.dev/api/packages/$package'</span>));
+  <span class="kw">final</span> score = <span class="kw">await</span> http.get(
+    Uri.parse(<span class="str">'https://pub.dev/api/packages/$package/score'</span>));
+
+  <span class="kw">final</span> metaJson = jsonDecode(meta.body);
+  <span class="kw">final</span> scoreJson = jsonDecode(score.body);
+
+  <span class="kw">final</span> lastPublish = DateTime.parse(
+    metaJson[<span class="str">'latest'</span>][<span class="str">'published'</span>]);
+  <span class="kw">final</span> monthsSince =
+    DateTime.now().difference(lastPublish).inDays ~/ <span class="str">30</span>;
+
+  <span class="kw">return</span> PackageHealth(
+    isDiscontinued: metaJson[<span class="str">'isDiscontinued'</span>] ?? <span class="str">false</span>,
+    replacedBy: metaJson[<span class="str">'replacedBy'</span>],
+    monthsSinceUpdate: monthsSince,
+    pubPoints: scoreJson[<span class="str">'grantedPoints'</span>],
+    isAbandoned: monthsSince > <span class="str">18</span>,
+  );
+}
+
+<span class="cm">// Batch requests with Future.wait for speed</span>
+<span class="kw">final</span> healths = <span class="kw">await</span> Future.wait(
+  packages.map((p) => checkHealth(p)));</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Edge cases</div>
+          <ul class="edge-list">
+            <li>Rate limit pub.dev requests — batch with small delays, cache results locally in ~/.smartpub/cache/</li>
+            <li>Offline mode: if no internet, skip health checks silently with a notice</li>
+            <li>Flutter SDK packages (flutter, flutter_test) never hit the API</li>
+            <li>Private/path/git dependencies — skip API check, warn they can't be scored</li>
+            <li>Add --no-health flag to skip this check entirely for fast offline runs</li>
+          </ul>
+        </div>
+        <button class="ask-btn" onclick="sendPrompt('Write a complete Dart pub.dev health checker for smartpub with caching and rate limiting')">Generate with caching + rate limiting ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f7">
+    <div class="feat-head" onclick="toggleFeat('f7')">
+      <div class="feat-cb" id="cb-f7" onclick="toggleCheck(event,'f7')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Version constraint quality analysis</div>
+        <div class="feat-sub">Flag pins, over-tight ranges, stale upper bounds</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-m">Effort: M</span>
+        <span class="tag tag-impact">Impact: medium</span>
+      </div>
+      <div class="feat-chevron" id="ch-f7">›</div>
+    </div>
+    <div class="feat-body" id="fb-f7">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">Analyse each version constraint in pubspec.yaml for quality issues. A <strong>pin</strong> (<code>==1.2.3</code>) blocks all upgrades. A wildcard (<code>any</code>) is a security risk. A <strong>stale upper bound</strong> (<code>&lt;2.0.0</code> when 3.0.0 is released) causes resolution failures. The pub.dev API can tell you the latest version so you can compare.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Constraint patterns to detect</div>
+          <div class="code-block"><span class="cm">// Use pub_semver package (already in your deps)</span>
+<span class="kw">import</span> <span class="str">'package:pub_semver/pub_semver.dart'</span>;
+
+<span class="kw">enum</span> ConstraintIssue { pinned, wildcard, staleUpperBound, tooTight }
+
+ConstraintIssue? analyzeConstraint(
+  String constraint, Version latestVersion) {
+
+  <span class="kw">if</span> (constraint == <span class="str">'any'</span>) <span class="kw">return</span> ConstraintIssue.wildcard;
+
+  <span class="kw">final</span> vc = VersionConstraint.parse(constraint);
+
+  <span class="cm">// Pin: ==1.2.3 (VersionConstraint.any is range, Version is exact)</span>
+  <span class="kw">if</span> (vc <span class="kw">is</span> Version) <span class="kw">return</span> ConstraintIssue.pinned;
+
+  <span class="kw">if</span> (vc <span class="kw">is</span> VersionRange) {
+    <span class="cm">// Stale upper: <2.0.0 but latest is 3.x</span>
+    <span class="kw">if</span> (vc.max != <span class="kw">null</span> && !vc.allows(latestVersion)) {
+      <span class="kw">return</span> ConstraintIssue.staleUpperBound;
+    }
+  }
+  <span class="kw">return null</span>; <span class="cm">// constraint is healthy</span>
+}</div>
+        </div>
+        <div class="tip-box">Suggest a ^-style caret range when you find a pin or stale bound. E.g. "consider ^2.1.0 instead of ==2.1.0" — actionable, not just a complaint.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f8">
+    <div class="feat-head" onclick="toggleFeat('f8')">
+      <div class="feat-cb" id="cb-f8" onclick="toggleCheck(event,'f8')"></div>
+      <div class="feat-info">
+        <div class="feat-name">License compliance scanning</div>
+        <div class="feat-sub">Flag GPL/AGPL deps incompatible with app store distribution</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-m">Effort: M</span>
+        <span class="tag tag-impact">Impact: high</span>
+      </div>
+      <div class="feat-chevron" id="ch-f8">›</div>
+    </div>
+    <div class="feat-body" id="fb-f8">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">Fetch the SPDX license identifier for each dependency from pub.dev and classify it. GPL-2.0, GPL-3.0, and AGPL-3.0 are copyleft licenses that require distributing source code — incompatible with most commercial app distributions. No other Dart/Flutter tool scans for this. Hugely valuable for enterprise teams and agencies.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Implementation</div>
+          <div class="code-block"><span class="cm">// Fetch license from pub.dev API</span>
+<span class="cm">// GET https://pub.dev/api/packages/{package}</span>
+<span class="cm">// response['latest']['pubspec']['license'] = 'MIT'</span>
+
+<span class="kw">const</span> copyleftLicenses = {
+  <span class="str">'GPL-2.0'</span>, <span class="str">'GPL-2.0-only'</span>, <span class="str">'GPL-2.0-or-later'</span>,
+  <span class="str">'GPL-3.0'</span>, <span class="str">'GPL-3.0-only'</span>, <span class="str">'GPL-3.0-or-later'</span>,
+  <span class="str">'AGPL-3.0'</span>, <span class="str">'AGPL-3.0-only'</span>,
+  <span class="str">'LGPL-2.1'</span>, <span class="str">'LGPL-3.0'</span>,   <span class="cm">// warn (not block)</span>
+};
+
+<span class="kw">const</span> permissiveLicenses = {
+  <span class="str">'MIT'</span>, <span class="str">'BSD-2-Clause'</span>, <span class="str">'BSD-3-Clause'</span>,
+  <span class="str">'Apache-2.0'</span>, <span class="str">'ISC'</span>, <span class="str">'MPL-2.0'</span>,
+};
+
+<span class="cm">// In smartpub.yaml: allow user to configure</span>
+<span class="cm">// licenses:</span>
+<span class="cm">#   deny: [GPL-3.0, AGPL-3.0]</span>
+<span class="cm">#   warn: [LGPL-2.1]</span></div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Output format</div>
+          <div class="code-block"><span class="cm">License scan results:</span>
+  <span class="str">http</span>          BSD-3-Clause  OK
+  <span class="str">path</span>          BSD-3-Clause  OK
+  <span class="str">some_package</span>  GPL-3.0       BLOCKED — copyleft, incompatible with
+                              commercial app distribution
+  <span class="str">other_pkg</span>     unknown       WARN — no license declared on pub.dev</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f9">
+    <div class="feat-head" onclick="toggleFeat('f9')">
+      <div class="feat-cb" id="cb-f9" onclick="toggleCheck(event,'f9')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Transitive dependency visibility</div>
+        <div class="feat-sub">Show which declared deps are actually undeclared transitive imports</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-m">Effort: M</span>
+        <span class="tag tag-impact">Impact: medium</span>
+      </div>
+      <div class="feat-chevron" id="ch-f9">›</div>
+    </div>
+    <div class="feat-body" id="fb-f9">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">Read <strong>.dart_tool/package_config.json</strong> (generated by pub get) to get the full resolved dependency graph including transitives. Cross-reference with what you actually import in code. If your code imports package <code>X</code> but <code>X</code> is only in the resolved graph as a transitive dep of <code>Y</code>, flag it — you're relying on an undeclared dep that could break silently.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Implementation</div>
+          <div class="code-block"><span class="cm">// Read resolved dep graph</span>
+<span class="kw">final</span> config = jsonDecode(
+  File(<span class="str">'.dart_tool/package_config.json'</span>).readAsStringSync());
+
+<span class="kw">final</span> allResolved = (config[<span class="str">'packages'</span>] <span class="kw">as</span> List)
+  .map((p) => p[<span class="str">'name'</span>] <span class="kw">as</span> String)
+  .toSet();
+
+<span class="cm">// Packages you import but didn't explicitly declare</span>
+<span class="kw">final</span> undeclaredTransitives = importedPackages
+  .where((p) => allResolved.contains(p))  <span class="cm">// resolved (not missing)</span>
+  .where((p) => !declared.contains(p))    <span class="cm">// but not declared</span>
+  .toList();</div>
+        </div>
+        <div class="warn-box">Require .dart_tool/package_config.json to exist (i.e. pub get has been run). Exit with a helpful message if it's missing — do not guess.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="phase-wrap">
+  <div class="phase-header">
+    <span class="phase-badge pb-teal">Phase 3 — ecosystem integration</span>
+    <span class="phase-title">Adoption multipliers — lower the activation energy for every developer</span>
+  </div>
+
+  <div class="feat" id="f10">
+    <div class="feat-head" onclick="toggleFeat('f10')">
+      <div class="feat-cb" id="cb-f10" onclick="toggleCheck(event,'f10')"></div>
+      <div class="feat-info">
+        <div class="feat-name">GitHub Actions marketplace action</div>
+        <div class="feat-sub">3-line CI integration — uncontested distribution channel</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-s">Effort: S</span>
+        <span class="tag tag-impact">Impact: high</span>
+      </div>
+      <div class="feat-chevron" id="ch-f10">›</div>
+    </div>
+    <div class="feat-body" id="fb-f10">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">A dedicated GitHub Actions action published to the Marketplace under <code>smartpub/smartpub-action</code>. Lets any Flutter team add smartpub CI checks with 3 lines of YAML. dependency_validator has no official action — this distribution channel is completely uncontested.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">action.yml</div>
+          <div class="code-block"><span class="kw">name</span>: <span class="str">'smartpub'</span>
+<span class="kw">description</span>: <span class="str">'Analyse Flutter/Dart dependencies'</span>
+<span class="kw">inputs</span>:
+  <span class="kw">working-directory</span>:
+    <span class="kw">description</span>: <span class="str">'Project directory'</span>
+    <span class="kw">default</span>: <span class="str">'.'</span>
+  <span class="kw">fail-on-violations</span>:
+    <span class="kw">description</span>: <span class="str">'Fail the build on violations'</span>
+    <span class="kw">default</span>: <span class="str">'true'</span>
+<span class="kw">runs</span>:
+  <span class="kw">using</span>: <span class="str">'composite'</span>
+  <span class="kw">steps</span>:
+    - <span class="kw">run</span>: dart pub global activate smartpub
+      <span class="kw">shell</span>: bash
+    - <span class="kw">run</span>: smartpub check --no-color
+      <span class="kw">shell</span>: bash
+      <span class="kw">working-directory</span>: <span class="str">${{ inputs.working-directory }}</span></div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">User-facing usage (what teams add to their workflow)</div>
+          <div class="code-block">- <span class="kw">name</span>: Check dependencies
+  <span class="kw">uses</span>: smartpub/smartpub-action<span class="str">@v1</span></div>
+        </div>
+        <div class="tip-box">Create a separate repository named smartpub-action. Tag v1, v1.0, v1.0.0 — GitHub Actions users expect major-version tags that float. Publish to the GitHub Marketplace (free, takes ~5 minutes).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f11">
+    <div class="feat-head" onclick="toggleFeat('f11')">
+      <div class="feat-cb" id="cb-f11" onclick="toggleCheck(event,'f11')"></div>
+      <div class="feat-info">
+        <div class="feat-name">SARIF output format</div>
+        <div class="feat-sub">Violations appear as inline PR annotations in GitHub</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-m">Effort: M</span>
+        <span class="tag tag-impact">Impact: medium</span>
+      </div>
+      <div class="feat-chevron" id="ch-f11">›</div>
+    </div>
+    <div class="feat-body" id="fb-f11">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">SARIF (Static Analysis Results Interchange Format) is the JSON standard used by GitHub Code Scanning, VS Code Problems panel, and Azure DevOps. When you emit SARIF and upload it in CI, GitHub shows violations as inline annotations directly on the changed files in a PR — no one has to read log output.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">SARIF structure for smartpub violations</div>
+          <div class="code-block">{
+  <span class="str">"version"</span>: <span class="str">"2.1.0"</span>,
+  <span class="str">"runs"</span>: [{
+    <span class="str">"tool"</span>: {
+      <span class="str">"driver"</span>: {
+        <span class="str">"name"</span>: <span class="str">"smartpub"</span>,
+        <span class="str">"rules"</span>: [
+          { <span class="str">"id"</span>: <span class="str">"SP001"</span>, <span class="str">"name"</span>: <span class="str">"UnusedDependency"</span> },
+          { <span class="str">"id"</span>: <span class="str">"SP002"</span>, <span class="str">"name"</span>: <span class="str">"MissingDependency"</span> },
+          { <span class="str">"id"</span>: <span class="str">"SP003"</span>, <span class="str">"name"</span>: <span class="str">"UnderPromoted"</span> },
+          { <span class="str">"id"</span>: <span class="str">"SP004"</span>, <span class="str">"name"</span>: <span class="str">"OverPromoted"</span> }
+        ]
+      }
+    },
+    <span class="str">"results"</span>: [{
+      <span class="str">"ruleId"</span>: <span class="str">"SP001"</span>,
+      <span class="str">"message"</span>: { <span class="str">"text"</span>: <span class="str">"'dio' is declared but not imported"</span> },
+      <span class="str">"locations"</span>: [{
+        <span class="str">"physicalLocation"</span>: {
+          <span class="str">"artifactLocation"</span>: { <span class="str">"uri"</span>: <span class="str">"pubspec.yaml"</span> }
+        }
+      }]
+    }]
+  }]
+}</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">CI upload snippet (add to GitHub Action)</div>
+          <div class="code-block">- <span class="kw">run</span>: smartpub check --format=sarif --output=results.sarif
+- <span class="kw">uses</span>: github/codeql-action/upload-sarif<span class="str">@v3</span>
+  <span class="kw">with</span>:
+    <span class="kw">sarif_file</span>: results.sarif</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f12">
+    <div class="feat-head" onclick="toggleFeat('f12')">
+      <div class="feat-cb" id="cb-f12" onclick="toggleCheck(event,'f12')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Programmatic Dart API</div>
+        <div class="feat-sub">Export analyser as a typed Dart library</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-m">Effort: M</span>
+        <span class="tag tag-impact">Impact: medium</span>
+      </div>
+      <div class="feat-chevron" id="ch-f12">›</div>
+    </div>
+    <div class="feat-body" id="fb-f12">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What it is</div>
+          <div class="gs-text">Export a clean public API so other tools, scripts, and IDEs can invoke smartpub's analysis without shelling out. Keeps your CLI as a thin wrapper over the library layer. Enables VS Code extensions, custom build scripts, and programmatic integration in larger toolchains.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Public API design</div>
+          <div class="code-block"><span class="cm">// lib/smartpub.dart — public exports only</span>
+<span class="kw">export</span> <span class="str">'src/analyzer.dart'</span>;
+<span class="kw">export</span> <span class="str">'src/models.dart'</span>;
+<span class="kw">export</span> <span class="str">'src/config.dart'</span>;
+
+<span class="cm">// Usage from another package:</span>
+<span class="kw">import</span> <span class="str">'package:smartpub/smartpub.dart'</span>;
+
+<span class="kw">final</span> analyzer = DependencyAnalyzer(
+  projectPath: <span class="str">'/path/to/project'</span>,
+  config: SmartpubConfig(ignore: [<span class="str">'build_runner'</span>]),
+);
+
+<span class="kw">final</span> result = <span class="kw">await</span> analyzer.analyze();
+
+result.unused         <span class="cm">// List&lt;String&gt;</span>
+result.missing        <span class="cm">// List&lt;String&gt;</span>
+result.underPromoted  <span class="cm">// List&lt;String&gt;</span>
+result.overPromoted   <span class="cm">// List&lt;String&gt;</span>
+result.hasViolations  <span class="cm">// bool</span></div>
+        </div>
+        <div class="tip-box">Keep your CLI in bin/ as a thin main() that calls the library. All business logic lives in lib/src/. This separation costs nothing to implement now and enables everything in Phase 3 and 4.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="phase-wrap">
+  <div class="phase-header">
+    <span class="phase-badge pb-blue">Phase 4 — trust infrastructure</span>
+    <span class="phase-title">Cannot be shortcut — takes time, consistency, and visibility</span>
+  </div>
+
+  <div class="feat" id="f13">
+    <div class="feat-head" onclick="toggleFeat('f13')">
+      <div class="feat-cb" id="cb-f13" onclick="toggleCheck(event,'f13')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Register a verified publisher domain</div>
+        <div class="feat-sub">10 minutes — biggest non-code trust signal on pub.dev</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-s">Effort: XS</span>
+        <span class="tag tag-impact">Impact: high</span>
+      </div>
+      <div class="feat-chevron" id="ch-f13">›</div>
+    </div>
+    <div class="feat-body" id="fb-f13">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">How to do it</div>
+          <div class="gs-text">Go to <strong>pub.dev/publishers/create</strong>. Enter a domain you control (even a personal one like yourname.dev — it does not need to be a company). Verify via a DNS TXT record. Once verified, transfer smartpub to that publisher. The verified badge appears immediately on the package page. This alone removes the single most visible trust barrier for enterprise developers evaluating the package.</div>
+        </div>
+        <div class="info-box">You don't need a company domain. yourname.dev, yourname.com, or any domain you own works. The badge signals you're accountable — not that you work for a corporation.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f14">
+    <div class="feat-head" onclick="toggleFeat('f14')">
+      <div class="feat-cb" id="cb-f14" onclick="toggleCheck(event,'f14')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Test suite with coverage</div>
+        <div class="feat-sub">A dep analyser must prove its own analysis is correct</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-l">Effort: L</span>
+        <span class="tag tag-impact">Impact: high</span>
+      </div>
+      <div class="feat-chevron" id="ch-f14">›</div>
+    </div>
+    <div class="feat-body" id="fb-f14">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">Testing strategy</div>
+          <div class="gs-text">Create a <code>test/fixtures/</code> directory with small synthetic Flutter projects — each one designed to test a specific scenario. Write integration tests that run smartpub against each fixture and assert on the output.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Fixture structure</div>
+          <div class="code-block">test/
+  fixtures/
+    unused_dep/        <span class="cm"># has 'dio' in pubspec, never imported</span>
+      pubspec.yaml
+      lib/main.dart
+    missing_dep/       <span class="cm"># imports 'http' but not in pubspec</span>
+      pubspec.yaml
+      lib/main.dart
+    under_promoted/    <span class="cm"># uses 'mocktail' in lib/, declared as dev</span>
+      pubspec.yaml
+      lib/service.dart
+    clean_project/     <span class="cm"># no violations — must exit 0</span>
+      pubspec.yaml
+      lib/main.dart
+  analyzer_test.dart
+  config_test.dart
+  exit_code_test.dart</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">CI coverage setup</div>
+          <div class="code-block"><span class="cm"># .github/workflows/ci.yml</span>
+- <span class="kw">name</span>: Run tests with coverage
+  <span class="kw">run</span>: |
+    dart test --coverage=coverage
+    dart pub global activate coverage
+    dart pub global run coverage:format_coverage \
+      --lcov --in=coverage --out=coverage/lcov.info \
+      --report-on=lib
+- <span class="kw">uses</span>: codecov/codecov-action<span class="str">@v4</span>
+  <span class="kw">with</span>:
+    <span class="kw">files</span>: coverage/lcov.info</div>
+        </div>
+        <div class="tip-box">Aim for 85%+ coverage on lib/src/. The fixture-based integration tests give you high confidence at low maintenance cost — one fixture per known false-positive edge case.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat" id="f15">
+    <div class="feat-head" onclick="toggleFeat('f15')">
+      <div class="feat-cb" id="cb-f15" onclick="toggleCheck(event,'f15')"></div>
+      <div class="feat-info">
+        <div class="feat-name">Release cadence + CHANGELOG discipline</div>
+        <div class="feat-sub">Monthly releases signal the project is alive</div>
+      </div>
+      <div class="feat-tags">
+        <span class="tag tag-effort-s">Effort: ongoing</span>
+        <span class="tag tag-impact">Impact: high</span>
+      </div>
+      <div class="feat-chevron" id="ch-f15">›</div>
+    </div>
+    <div class="feat-body" id="fb-f15">
+      <div class="feat-body-inner">
+        <div class="guide-section">
+          <div class="gs-label">What to do</div>
+          <div class="gs-text">Set a personal rule: at minimum one pub.dev release per month, even if it's only a patch. Add a GitHub Actions workflow that runs on every push to main and automatically checks that the CHANGELOG has been updated. Keep a <strong>CHANGELOG.md</strong> in the format below — it is read by developers evaluating whether the project is active, and by pub.dev's scoring system.</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">CHANGELOG.md format</div>
+          <div class="code-block"><span class="cm">## 1.1.0 - 2025-04-10</span>
+<span class="kw">### Added</span>
+- Missing dependency detection (SP002)
+- Non-zero exit codes on violations
+- smartpub.yaml config file support
+
+<span class="kw">### Fixed</span>
+- False positive on flutter_test in lib/ (#12)
+
+<span class="kw">### Changed</span>
+- check command now exits 1 when violations found</div>
+        </div>
+        <div class="guide-section">
+          <div class="gs-label">Automated release workflow</div>
+          <div class="code-block"><span class="cm"># .github/workflows/publish.yml</span>
+<span class="kw">on</span>:
+  <span class="kw">push</span>:
+    <span class="kw">tags</span>: [<span class="str">'v*'</span>]
+<span class="kw">jobs</span>:
+  <span class="kw">publish</span>:
+    <span class="kw">steps</span>:
+      - <span class="kw">uses</span>: dart-lang/setup-dart<span class="str">@v1</span>
+      - <span class="kw">run</span>: dart pub publish --force</div>
+        </div>
+        <div class="warn-box">assets_cleaner died because it went 13 months without a release. Consistency matters more than frequency — even a one-line bugfix released monthly is enough to show the project is alive.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+var checks = {};
+var total = 15;
+
+function updateProgress() {
+  var done = Object.values(checks).filter(Boolean).length;
+  var pct = Math.round((done / total) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-count').textContent = done + ' / ' + total + ' completed';
+}
+
+function toggleCheck(e, id) {
+  e.stopPropagation();
+  checks[id] = !checks[id];
+  var cb = document.getElementById('cb-' + id);
+  cb.classList.toggle('checked', checks[id]);
+  var feat = document.getElementById(id);
+  feat.classList.toggle('done', checks[id]);
+  updateProgress();
+}
+
+function toggleFeat(id) {
+  var body = document.getElementById('fb-' + id);
+  var ch = document.getElementById('ch-' + id);
+  var isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  ch.classList.toggle('open', !isOpen);
+}
+</script>

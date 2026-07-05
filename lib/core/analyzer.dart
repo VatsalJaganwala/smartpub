@@ -9,11 +9,18 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
+import 'package:glob/glob.dart';
 import '../core/config.dart';
 import '../core/models/dependency_info.dart';
+import '../core/models/smartpub_config.dart';
 
 /// Main dependency analyzer class
 class DependencyAnalyzer {
+  DependencyAnalyzer({this.config = const SmartpubConfig()});
+
+  /// Config settings from smartpub.yaml
+  final SmartpubConfig config;
+
   /// Analyze dependencies in the current project
   Future<AnalysisResult> analyze() async {
     final File pubspecFile = File(FileConfig.pubspecFile);
@@ -132,6 +139,10 @@ class DependencyAnalyzer {
     final Map<String, PackageUsage> usageMap = <String, PackageUsage>{};
     final RegExp importRegex = RegExp(AnalysisConfig.importPattern);
 
+    // Compile exclude globs
+    final List<Glob> excludeGlobs =
+        config.exclude.map((String pattern) => Glob(pattern)).toList();
+
     // Scan each directory
     for (final String dir in FileConfig.scanDirectories) {
       final Directory directory = Directory(dir);
@@ -141,6 +152,14 @@ class DependencyAnalyzer {
       await for (final FileSystemEntity entity
           in directory.list(recursive: true)) {
         if (entity is File && entity.path.endsWith(FileConfig.dartExtension)) {
+          // Check if file is excluded
+          final String relativePath = path.relative(entity.path);
+          final String normalizedPath =
+              relativePath.replaceAll(path.separator, '/');
+          if (excludeGlobs.any((Glob glob) => glob.matches(normalizedPath))) {
+            continue;
+          }
+
           final String content = await entity.readAsString();
           final Iterable<RegExpMatch> matches = importRegex.allMatches(content);
 
@@ -180,8 +199,14 @@ class DependencyAnalyzer {
   /// Determine the status of a dependency based on usage
   DependencyStatus _determineDependencyStatus(
       String packageName, PackageUsage? usage) {
+    if (config.ignore.contains(packageName)) {
+      return DependencyStatus.used;
+    }
+
     if (usage == null) {
-      return DependencyStatus.unused;
+      return config.checks.unused
+          ? DependencyStatus.unused
+          : DependencyStatus.used;
     }
 
     // If used in lib/ or bin/, it should stay in main dependencies
@@ -192,16 +217,24 @@ class DependencyAnalyzer {
 
     // If only used in test/ or tool/, it should be in dev_dependencies
     if (usage.usedInTest || usage.usedInTool) {
-      return DependencyStatus.testOnly;
+      return config.checks.promotions
+          ? DependencyStatus.testOnly
+          : DependencyStatus.used;
     }
 
-    return DependencyStatus.unused;
+    return config.checks.unused
+        ? DependencyStatus.unused
+        : DependencyStatus.used;
   }
 
   /// Determine the status of a dev dependency based on usage
   /// For dev dependencies, we only care if they should be moved to dependencies
   DependencyStatus _determineDevDependencyStatus(
       String packageName, PackageUsage? usage) {
+    if (config.ignore.contains(packageName)) {
+      return DependencyStatus.used;
+    }
+
     if (usage == null) {
       // For dev dependencies, unused is acceptable - return used to avoid flagging
       return DependencyStatus.used;
@@ -209,8 +242,10 @@ class DependencyAnalyzer {
 
     // If used in lib/ or bin/, it should be moved to main dependencies
     if (usage.usedInLib || usage.usedInBin) {
-      return DependencyStatus
-          .testOnly; // This will trigger "move to dependencies" recommendation
+      return config.checks.promotions
+          ? DependencyStatus.testOnly
+          : DependencyStatus
+              .used; // This will trigger "move to dependencies" recommendation
     }
 
     // If only used in test/ or tool/, it's correctly placed in dev_dependencies

@@ -39,16 +39,30 @@ class CLIOutput {
       print('');
     }
 
-    // Print test-only dependencies that need moving
-    final testOnlyInWrongSection = result.testOnlyDependencies
+    // Print test-only dependencies that need moving to dev_dependencies (over-promoted)
+    final overPromoted = result.testOnlyDependencies
         .where((DependencyInfo dep) =>
             dep.section == DependencySection.dependencies)
         .toList();
 
-    if (testOnlyInWrongSection.isNotEmpty) {
+    if (overPromoted.isNotEmpty) {
       _printSubHeader(
           '${OutputConfig.testOnlyIndicator} Move to dev_dependencies');
-      for (final dep in testOnlyInWrongSection) {
+      for (final dep in overPromoted) {
+        _printDependency(dep, OutputConfig.testOnlyIndicator);
+      }
+      print('');
+    }
+
+    // Print under-promoted dependencies that need moving to dependencies
+    final underPromoted = result.testOnlyDependencies
+        .where((DependencyInfo dep) =>
+            dep.section == DependencySection.devDependencies)
+        .toList();
+
+    if (underPromoted.isNotEmpty) {
+      _printSubHeader('${OutputConfig.testOnlyIndicator} Move to dependencies');
+      for (final dep in underPromoted) {
         _printDependency(dep, OutputConfig.testOnlyIndicator);
       }
       print('');
@@ -179,10 +193,7 @@ class CLIOutput {
     }
 
     if (result.hasIssues) {
-      final issueCount = result.testOnlyDependencies
-              .where((DependencyInfo dep) =>
-                  dep.section == DependencySection.dependencies)
-              .length +
+      final issueCount = result.testOnlyDependencies.length +
           result.unusedDependencies.length +
           result.duplicates.length;
 
@@ -220,6 +231,16 @@ class CLIOutput {
       print(green('${OutputConfig.successEmoji} $message'));
     } else {
       print('SUCCESS: $message');
+    }
+  }
+
+  /// Print warning message
+  void printWarning(String message) {
+    if (!ansiColorDisabled) {
+      final yellow = AnsiPen()..yellow();
+      print(yellow('${OutputConfig.warningEmoji} $message'));
+    } else {
+      print('WARNING: $message');
     }
   }
 }

@@ -7,4 +7,5 @@ library;
 export 'analyzer.dart';
 export 'config.dart';
 export 'models/dependency_info.dart';
+export 'models/smartpub_config.dart';
 export 'strings.dart';

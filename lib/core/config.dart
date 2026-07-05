@@ -79,7 +79,7 @@ class OutputConfig {
 class AnalysisConfig {
   /// Import pattern regex for detecting package imports
   static const String importPattern =
-      r'import\s+[\x27\x22]package:([^/\x27\x22]+)';
+      r'(?:import|export)\s+[\x27\x22]package:([^/\x27\x22]+)';
 
   /// Pubspec sections to analyze
   static const String dependenciesSection = 'dependencies';

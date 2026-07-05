@@ -35,13 +35,16 @@ No magic. No hidden behavior.
 
 ## ✨ What SmartPub Does
 
-SmartPub focuses on **two core features only**:
+SmartPub focuses on **three core features**:
 
-### 1️⃣ Unused Dependency Detection
+### 1️⃣ Unused & Misplaced Dependency Detection
 
-* Scans your project source code
-* Detects unused dependencies
-* Allows preview before removal
+* Scans your project source code (`lib/`, `test/`, `bin/`, `tool/`)
+* Detects **unused dependencies** declared in `pubspec.yaml`
+* Identifies **misplaced dependencies**:
+  * **Over-promoted**: Packages only used in tests/tools but declared under `dependencies`.
+  * **Under-promoted**: Packages used in core library files but declared under `dev_dependencies` (which can break downstream consumers).
+* Allows preview before removal or relocation
 * Supports interactive confirmation
 
 ### 2️⃣ Dependency Categorization ``` (beta) ```
@@ -51,17 +54,44 @@ SmartPub focuses on **two core features only**:
 * Uses known ecosystem data
 * Supports preview, auto-apply, and interactive overrides
 
+### 3️⃣ Persistent Configuration (`smartpub.yaml`)
+
+* Exclude specific directories/files from scanning (using globs like `lib/generated/**`)
+* Ignore specific packages from analysis (e.g. code generators like `build_runner`)
+* Fine-tune active checking parameters (toggling unused or promotions checks)
+
 ---
 
-## 🚀 Installation
+## 🚀 Installation & Setup
 
-### Global installation (recommended)
+### 1. Install Globally
+
+Activate SmartPub globally using Dart's pub tool:
 
 ```bash
 dart pub global activate smartpub
 ```
 
-Make sure Dart’s global bin is in your PATH.
+Make sure Dart’s global bin is added to your system's PATH.
+
+### 2. Initialize Configuration
+
+Initialize the configuration file `smartpub.yaml` in your project root directory:
+
+```bash
+smartpub init
+```
+
+This generates a starter configuration template with detailed comments to customize rules for your project (ignored packages, path exclusions, etc.).
+
+### 3. Run Analysis
+
+Run SmartPub to preview dependency violations:
+
+```bash
+smartpub check
+```
+*(Or simply run `smartpub` as a shortcut).*
 
 ---
 
@@ -71,7 +101,7 @@ Make sure Dart’s global bin is in your PATH.
 smartpub [command] [options]
 ```
 
-If no command is provided, SmartPub runs in **preview mode**.
+If no command is provided, SmartPub runs in **preview mode** (equivalent to `smartpub check`).
 
 ---
 
@@ -136,6 +166,18 @@ This is useful when you want full control over how packages are grouped.
 
 ---
 
+### `init`
+
+Initialize a default, fully documented `smartpub.yaml` configuration file.
+
+```bash
+smartpub init
+```
+
+* Prevents overwriting if `smartpub.yaml` already exists.
+
+---
+
 ### `restore`
 
 Restore `pubspec.yaml` from the last backup.
@@ -163,6 +205,7 @@ smartpub update
 --interactive            Review and confirm changes interactively
 --no-fail-on-violations  Exit 0 even when violations are found (warn-only mode)
 --no-color               Disable colored output (CI-friendly)
+--config <path>          Path to custom config file (default: smartpub.yaml)
 -h, --help               Show help information
 -v, --version            Show version information
 ```

@@ -1,6 +1,16 @@
 # 📄 Changelog
 ---
 
+### **[1.1.0] – 2026-07-05**
+
+#### ✨ What’s New
+
+* **Misplaced Dependency Detection**: Added support for detecting over-promoted packages (used only in tests/tools but declared in dependencies) and under-promoted packages (used in core libraries but declared in dev_dependencies) and automatically or interactively relocating them during cleanup.
+* **Persistent Configuration (`smartpub.yaml`)**: Added support for team-shareable project configuration files to define directory exclusions (using globs), package ignore lists, and selection check toggles.
+* **Setup Initialization Command (`init`)**: Added the `smartpub init` command to safely initialize a fully commented default config template in the project root.
+* **Export Scanning**: Expanded the scanner engine to parse and verify `export` statements alongside imports, resolving false-positive unused warnings for exported library packages.
+
+---
 ### **[1.0.8] – 2026-03-15**
 
 #### ✨ What’s New
