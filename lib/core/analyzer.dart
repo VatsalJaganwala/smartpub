@@ -113,9 +113,38 @@ class DependencyAnalyzer {
     final List<DuplicateDependency> duplicates =
         _findDuplicates(dependencies, devDependencies, usageMap);
 
+    // Detect missing dependencies
+    final List<MissingDependency> missing = <MissingDependency>[];
+    if (config.checks.missing) {
+      final Set<String> declared = <String>{
+        ...dependencies.keys,
+        ...devDependencies.keys,
+      };
+      final String packageName = pubspec['name'] as String? ?? '';
+      final Set<String> sdkPackages = const <String>{'dart', 'flutter'};
+
+      for (final String importedPkg in usageMap.keys) {
+        if (!declared.contains(importedPkg) &&
+            importedPkg != packageName &&
+            !sdkPackages.contains(importedPkg) &&
+            !config.ignore.contains(importedPkg)) {
+          final PackageUsage usage = usageMap[importedPkg]!;
+          missing.add(MissingDependency(
+            name: importedPkg,
+            usedInLib: usage.usedInLib,
+            usedInTest: usage.usedInTest,
+            usedInBin: usage.usedInBin,
+            usedInTool: usage.usedInTool,
+          ));
+        }
+      }
+      missing.sort((a, b) => a.name.compareTo(b.name));
+    }
+
     return AnalysisResult(
       dependencies: results,
       duplicates: duplicates,
+      missing: missing,
       totalScanned: results.length,
     );
   }
@@ -318,11 +347,13 @@ class AnalysisResult {
   AnalysisResult({
     required this.dependencies,
     required this.duplicates,
+    required this.missing,
     required this.totalScanned,
   });
 
   final List<DependencyInfo> dependencies;
   final List<DuplicateDependency> duplicates;
+  final List<MissingDependency> missing;
   final int totalScanned;
 
   /// Get dependencies by status
@@ -346,7 +377,7 @@ class AnalysisResult {
     // Check for dependencies that need action
     final bool needsAction =
         dependencies.any((DependencyInfo dep) => dep.needsAction);
-    return needsAction || duplicates.isNotEmpty;
+    return needsAction || duplicates.isNotEmpty || missing.isNotEmpty;
   }
 }
 

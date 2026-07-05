@@ -37,15 +37,16 @@ No magic. No hidden behavior.
 
 SmartPub focuses on **three core features**:
 
-### 1️⃣ Unused & Misplaced Dependency Detection
+### 1️⃣ Unused, Misplaced & Missing Dependency Detection
 
 * Scans your project source code (`lib/`, `test/`, `bin/`, `tool/`)
 * Detects **unused dependencies** declared in `pubspec.yaml`
 * Identifies **misplaced dependencies**:
   * **Over-promoted**: Packages only used in tests/tools but declared under `dependencies`.
   * **Under-promoted**: Packages used in core library files but declared under `dev_dependencies` (which can break downstream consumers).
-* Allows preview before removal or relocation
-* Supports interactive confirmation
+* Identifies **missing dependencies**: Packages used in code but not declared in `pubspec.yaml`.
+* Allows preview before removal or relocation (missing dependency reporting is read-only)
+* Supports interactive confirmation for cleanups
 
 ### 2️⃣ Dependency Categorization ``` (beta) ```
 #### [```Powered by FlutterGems```](https://fluttergems.dev/)

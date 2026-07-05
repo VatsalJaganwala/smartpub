@@ -76,6 +76,7 @@ The CLI categorizes dependencies into four categories:
    * **Over-promoted (Move to dev_dependencies)**: Packages used only in `test/` or `tool/` but declared in regular `dependencies` (inflates app bundle size).
    * **Under-promoted (Move to dependencies)**: Packages used in `lib/` or `bin/` but declared under `dev_dependencies` (causes downstream compilation errors).
 4. **🔁 Duplicate Dependencies**: Packages declared in both sections at the same time.
+5. **❌ Missing Dependencies**: Packages imported or exported in the source code but not declared in `pubspec.yaml` (these work only because they are transitive dependencies of other packages and can break anytime).
 
 ### CI/CD Pipeline Integration & Exit Codes
 

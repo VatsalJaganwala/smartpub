@@ -90,6 +90,16 @@ class CLIOutput {
       print('');
     }
 
+    // Print missing dependencies
+    if (result.missing.isNotEmpty) {
+      _printSubHeader(
+          '${OutputConfig.errorEmoji} Missing Dependencies (used in code but not declared in pubspec.yaml)');
+      for (final dep in result.missing) {
+        _printMissingDependency(dep);
+      }
+      print('');
+    }
+
     // Print summary
     _printSummary(result);
   }
@@ -111,6 +121,18 @@ class CLIOutput {
           pen = AnsiPen()..red();
           break;
       }
+      print(pen(message));
+    } else {
+      print(message);
+    }
+  }
+
+  /// Print a missing dependency
+  void _printMissingDependency(MissingDependency dep) {
+    final message =
+        '${OutputConfig.errorEmoji} ${dep.name} - ${dep.usageDescription} (add to pubspec.yaml)';
+    if (!ansiColorDisabled) {
+      final pen = AnsiPen()..red();
       print(pen(message));
     } else {
       print(message);
@@ -192,12 +214,17 @@ class CLIOutput {
       print('Duplicate dependencies: ${result.duplicates.length}');
     }
 
+    if (result.missing.isNotEmpty) {
+      print('Missing dependencies: ${result.missing.length}');
+    }
+
     if (result.hasIssues) {
       final issueCount = result.testOnlyDependencies.length +
           result.unusedDependencies.length +
-          result.duplicates.length;
+          result.duplicates.length +
+          result.missing.length;
 
-      _printWarning('$issueCount issue(s) found that can be fixed');
+      _printWarning('$issueCount issue(s) found that can be fixed or resolved');
     } else {
       _printSuccess('No issues found!');
     }

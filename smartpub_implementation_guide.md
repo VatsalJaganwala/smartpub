@@ -116,7 +116,7 @@ SmartpubConfig loadConfig(String projectPath) {
 
 ---
 
-### [ ] Missing dependency detection
+### [x] Missing dependency detection
 * **Effort:** M | **Impact:** critical
 * *Find packages used in code but not declared in pubspec.yaml*
 

@@ -144,3 +144,47 @@ extension DependencySectionExtension on DependencySection {
     }
   }
 }
+
+/// Information about a missing dependency (imported/exported in code but not declared in pubspec.yaml)
+class MissingDependency {
+  MissingDependency({
+    required this.name,
+    required this.usedInLib,
+    required this.usedInTest,
+    required this.usedInBin,
+    required this.usedInTool,
+  });
+
+  /// Package name
+  final String name;
+
+  /// Whether it's used in lib/ directory
+  final bool usedInLib;
+
+  /// Whether it's used in test/ directory
+  final bool usedInTest;
+
+  /// Whether it's used in bin/ directory
+  final bool usedInBin;
+
+  /// Whether it's used in tool/ directory
+  final bool usedInTool;
+
+  /// Get usage description
+  String get usageDescription {
+    final locations = <String>[];
+    if (usedInLib) {
+      locations.add('lib');
+    }
+    if (usedInTest) {
+      locations.add('test');
+    }
+    if (usedInBin) {
+      locations.add('bin');
+    }
+    if (usedInTool) {
+      locations.add('tool');
+    }
+    return 'used in ${locations.join(', ')}';
+  }
+}

@@ -22,6 +22,7 @@ import 'package:smartpub/services/update_checker.dart';
 import 'package:smartpub/ui/cli_output.dart';
 import 'package:smartpub/ui/interactive_grouping_service.dart';
 import 'package:smartpub/ui/interactive_service.dart';
+import 'package:smartpub/ui/loader.dart';
 
 void main(List<String> arguments) async {
   await AppConfig.initialize();
@@ -341,10 +342,16 @@ class SmartPubCLI {
     bool apply,
     bool interactive,
   ) async {
-    // Initialize categorization
-    _output.printInfo(Strings.initializingCategorization);
-    final GemsIntegration gemsIntegration = GemsIntegration();
-    await gemsIntegration.initialize();
+    // Initialize categorization with spinner (makes an HTTP call to FlutterGems)
+    final GemsIntegration gemsIntegration = await withSpinner(
+      label: 'Initializing FlutterGems data',
+      successLabel: 'FlutterGems data loaded',
+      task: () async {
+        final gems = GemsIntegration();
+        await gems.initialize();
+        return gems;
+      },
+    );
 
     // Load overrides
     final Map<String, String>? overrides = await loadGroupOverrides();
@@ -363,12 +370,17 @@ class SmartPubCLI {
             d.section == DependencySection.devDependencies)
         .toList();
 
-    // Group dependencies
-    _output.printInfo(Strings.groupingByCategories);
-    final GroupedDependencies groupedDeps =
-        await groupingService.groupDependencies(deps);
-    final GroupedDependencies groupedDevDeps =
-        await groupingService.groupDependencies(devDeps);
+    // Group dependencies with spinner (may call external API per package)
+    final GroupedDependencies groupedDeps = await withSpinner(
+      label: 'Categorizing ${deps.length} dependencies',
+      successLabel: 'Dependencies categorized',
+      task: () => groupingService.groupDependencies(deps),
+    );
+    final GroupedDependencies groupedDevDeps = await withSpinner(
+      label: 'Categorizing ${devDeps.length} dev_dependencies',
+      successLabel: 'Dev dependencies categorized',
+      task: () => groupingService.groupDependencies(devDeps),
+    );
 
     // Show preview
     final String preview =

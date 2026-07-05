@@ -11,7 +11,7 @@ Use this checklist to ensure that every release of SmartPub is stable, correctly
   - Added new release block (e.g. `### **[X.Y.Z] – YYYY-MM-DD**`).
   - Documented all features under `✨ What’s New` and bugfixes under `🐛 Bug Fixes`.
   - Preserved original file formatting and line endings (CRLF vs LF).
-
+Transcription by CastingWords
 ## 2. Code Quality & Format
 - [ ] **Code Formatting**: Run formatter to verify code style matches Dart guidelines:
   ```bash
