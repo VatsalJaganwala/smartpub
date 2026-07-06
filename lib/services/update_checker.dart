@@ -33,10 +33,12 @@ class UpdateChecker {
         final cachedInfo = await _getCachedUpdateInfo();
         if (cachedInfo != null && !_isCacheExpired(cachedInfo.lastChecked)) {
           latestVersion = cachedInfo.latestVersion;
-        } else {
-          // Fetch latest version from pub.dev
-          latestVersion = await _fetchLatestVersion();
         }
+      }
+
+      // Fetch from pub.dev if not loaded from cache
+      if (latestVersion == null) {
+        latestVersion = await _fetchLatestVersion();
       }
 
       if (latestVersion == null) {
