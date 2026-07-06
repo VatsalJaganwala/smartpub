@@ -1,6 +1,14 @@
 # 📄 Changelog
 ---
 
+### **[1.1.1] – 2026-07-06**
+
+#### ✨ What’s New
+
+* **Missing Dependency Detection**: Added support for detecting packages imported or exported in source code but missing from `pubspec.yaml` (critical for preventing hidden transitive dependency breaks).
+* **Animated Spinners & CLI Loaders**: Added live animated spinners and progress feedback for slow dependency grouping/categorization tasks.
+
+---
 ### **[1.1.0] – 2026-07-05**
 
 #### ✨ What’s New
